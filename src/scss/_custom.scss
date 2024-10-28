@@ -1,1 +1,15 @@
+
 // Here you can add other styles
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
+
+root{
+    font-family: 'Source Sans Pro', sans-serif;
+}
+body{
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
+.homeheader{
+    display: flex;
+    width: 100%;
+}

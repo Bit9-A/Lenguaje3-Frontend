@@ -45,7 +45,7 @@ export default defineConfig(() => {
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },
     server: {
-      port: 8000,
+      port: 10000,
       open: true,
       strictPort: true,
       host: true,
