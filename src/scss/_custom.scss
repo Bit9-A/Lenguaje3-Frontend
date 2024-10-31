@@ -1,15 +1,48 @@
-
 // Here you can add other styles
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
 
-root{
-    font-family: 'Source Sans Pro', sans-serif;
+:root {
+    --color-primary: #194177 !important;
+    --color-secondary: rgb(126, 20, 20) !important;
+    --font-color: #fff;
 }
-body{
+
+
+body {
     font-family: 'Source Sans Pro', sans-serif;
 }
 
-.homeheader{
+.bg-primary {
+    background-color: var(--color-primary) !important;
+}
+
+.bg-secondary { 
+    background-color: var(--color-secondary) !important;
+    }
+
+
+.btn-primary {
+    background-color: var(--color-primary) !important;
+}
+
+.btn-link {
+    color: var(--color-primary) !important;
+}
+
+
+.nav-link{
+    color: var(--font-color) !important;
+}
+
+.nav-link:hover{
+    background-color: #15345e !important;
+}
+
+.homeheader {
     display: flex;
     width: 100%;
+}
+
+.dbheader {
+    background-color: var(--color-primary);
 }

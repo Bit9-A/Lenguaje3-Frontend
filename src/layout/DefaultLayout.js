@@ -5,11 +5,31 @@ import { useLocation } from 'react-router-dom'
 
 const DefaultLayout = () => {
   const location = useLocation();
-  const isDashBoard = location.pathname == '/dashboard';
+
+  const dashboardRoutes = [
+    '/dashboard',
+    '/clients/list',
+    '/clients/new',
+    '/clients/interactions',
+    '/projects/manage',
+    '/projects/development',
+    '/progress/tracking',
+    '/services/reservations',
+    '/billing/payments',
+    '/proposals/received',
+    '/proposals/history',
+    '/admin/employees',
+    '/admin/reports',
+    '/communication/messages',
+  ];
+
+  const isDashBoard = dashboardRoutes.includes(location.pathname);
+
   console.log(isDashBoard);
 
   return (
     <div>
+      {isDashBoard ? <AppSidebar/>: null}
       <div className="wrapper d-flex flex-column min-vh-100">
         {isDashBoard ? <DashboardHeader/> : <HomeHeader/>}
         <div className="body flex-grow-1">

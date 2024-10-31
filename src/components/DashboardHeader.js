@@ -30,7 +30,7 @@ import { AppHeaderDropdown } from './header/index'
 
 const AppHeader = ({ type }) => {
   const headerRef = useRef()
-  const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+  const { colorMode, setColorMode } = useColorModes('')
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
@@ -42,8 +42,8 @@ const AppHeader = ({ type }) => {
     })
   }, [])
     return (
-      <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
-        <CContainer className="border-bottom px-4" fluid>
+      <CHeader position="sticky" className="mb-4 p-0 dbheader" ref={headerRef}>
+        <CContainer className="border-bottom px-4 dbheader" fluid>
           <CHeaderToggler
             onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}
             style={{ marginInlineStart: '-14px' }}
@@ -57,10 +57,10 @@ const AppHeader = ({ type }) => {
               </CNavLink>
             </CNavItem>
             <CNavItem>
-              <CNavLink href="#">Users</CNavLink>
+              <CNavLink href="#">No Disponible</CNavLink>
             </CNavItem>
             <CNavItem>
-              <CNavLink href="#">Settings</CNavLink>
+              <CNavLink href="#">No Disponible</CNavLink>
             </CNavItem>
           </CHeaderNav>
           <CHeaderNav className="ms-auto">
