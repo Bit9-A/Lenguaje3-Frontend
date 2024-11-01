@@ -23,15 +23,57 @@ import {
   CAvatar,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilOptions, cilSearch, cilUser, cilEnvelopeClosed, cilPhone, cilBriefcase } from '@coreui/icons'
+import {
+  cilOptions,
+  cilSearch,
+  cilUser,
+  cilEnvelopeClosed,
+  cilPhone,
+  cilBriefcase,
+} from '@coreui/icons'
 
 const ClientList = () => {
   const [clients, setClients] = useState([
-    { id: 1, name: 'Juan Pérez', email: 'juan@gmail.com', phone: '555-0101', status: 'Activo', projects: 2 },
-    { id: 2, name: 'María García', email: 'maria@gmail.com', phone: '555-0102', status: 'Inactivo', projects: 1 },
-    { id: 3, name: 'Carlos Rodríguez', email: 'carlos@gmail.com', phone: '555-0103', status: 'Activo', projects: 3 },
-    { id: 4, name: 'Ana Martínez', email: 'ana@gmail.com', phone: '555-0104', status: 'Potencial', projects: 0 },
-    { id: 5, name: 'Luis Sánchez', email: 'luis@gmail.com', phone: '555-0105', status: 'Activo', projects: 1 },
+    {
+      id: 1,
+      name: 'Juan Pérez',
+      email: 'juan@gmail.com',
+      phone: '555-0101',
+      status: 'Activo',
+      projects: 2,
+    },
+    {
+      id: 2,
+      name: 'María García',
+      email: 'maria@gmail.com',
+      phone: '555-0102',
+      status: 'Inactivo',
+      projects: 1,
+    },
+    {
+      id: 3,
+      name: 'Carlos Rodríguez',
+      email: 'carlos@gmail.com',
+      phone: '555-0103',
+      status: 'Activo',
+      projects: 3,
+    },
+    {
+      id: 4,
+      name: 'Ana Martínez',
+      email: 'ana@gmail.com',
+      phone: '555-0104',
+      status: 'Potencial',
+      projects: 0,
+    },
+    {
+      id: 5,
+      name: 'Luis Sánchez',
+      email: 'luis@gmail.com',
+      phone: '555-0105',
+      status: 'Activo',
+      projects: 1,
+    },
   ])
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -40,20 +82,37 @@ const ClientList = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Activo':
-        return <CBadge color="success" shape="rounded-pill">{status}</CBadge>
+        return (
+          <CBadge color="success" shape="rounded-pill">
+            {status}
+          </CBadge>
+        )
       case 'Inactivo':
-        return <CBadge color="danger" shape="rounded-pill">{status}</CBadge>
+        return (
+          <CBadge color="danger" shape="rounded-pill">
+            {status}
+          </CBadge>
+        )
       case 'Potencial':
-        return <CBadge color="warning" shape="rounded-pill">{status}</CBadge>
+        return (
+          <CBadge color="warning" shape="rounded-pill">
+            {status}
+          </CBadge>
+        )
       default:
-        return <CBadge color="secondary" shape="rounded-pill">{status}</CBadge>
+        return (
+          <CBadge color="secondary" shape="rounded-pill">
+            {status}
+          </CBadge>
+        )
     }
   }
 
-  const filteredClients = clients.filter(client => 
-    (client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     client.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (statusFilter === 'Todos' || client.status === statusFilter)
+  const filteredClients = clients.filter(
+    (client) =>
+      (client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (statusFilter === 'Todos' || client.status === statusFilter),
   )
 
   return (
@@ -86,8 +145,12 @@ const ClientList = () => {
                   <CDropdownMenu>
                     <CDropdownItem onClick={() => setStatusFilter('Todos')}>Todos</CDropdownItem>
                     <CDropdownItem onClick={() => setStatusFilter('Activo')}>Activo</CDropdownItem>
-                    <CDropdownItem onClick={() => setStatusFilter('Inactivo')}>Inactivo</CDropdownItem>
-                    <CDropdownItem onClick={() => setStatusFilter('Potencial')}>Potencial</CDropdownItem>
+                    <CDropdownItem onClick={() => setStatusFilter('Inactivo')}>
+                      Inactivo
+                    </CDropdownItem>
+                    <CDropdownItem onClick={() => setStatusFilter('Potencial')}>
+                      Potencial
+                    </CDropdownItem>
                   </CDropdownMenu>
                 </CDropdown>
               </CCol>
@@ -107,7 +170,11 @@ const ClientList = () => {
                   <CTableRow key={index} className="align-middle">
                     <CTableDataCell>
                       <div className="d-flex align-items-center">
-                        <CAvatar color={client.status === 'Activo' ? 'primary' : 'secondary'} size="md" className="me-3">
+                        <CAvatar
+                          color={client.status === 'Activo' ? 'primary' : 'secondary'}
+                          size="md"
+                          className="me-3"
+                        >
                           {client.name.charAt(0)}
                         </CAvatar>
                         <div>
@@ -133,7 +200,9 @@ const ClientList = () => {
                       {getStatusBadge(client.status)}
                     </CTableDataCell>
                     <CTableDataCell className="text-center">
-                      <CBadge color="info" shape="rounded-pill" className="px-3">{client.projects}</CBadge>
+                      <CBadge color="info" shape="rounded-pill" className="px-3">
+                        {client.projects}
+                      </CBadge>
                     </CTableDataCell>
                     <CTableDataCell className="text-center">
                       <CDropdown alignment="end">
@@ -143,7 +212,9 @@ const ClientList = () => {
                         <CDropdownMenu>
                           <CDropdownItem href="#">Ver Detalles</CDropdownItem>
                           <CDropdownItem href="#">Editar</CDropdownItem>
-                          <CDropdownItem href="#" className="text-danger">Eliminar</CDropdownItem>
+                          <CDropdownItem href="#" className="text-danger">
+                            Eliminar
+                          </CDropdownItem>
                         </CDropdownMenu>
                       </CDropdown>
                     </CTableDataCell>
@@ -158,4 +229,4 @@ const ClientList = () => {
   )
 }
 
-export default ClientList;
+export default ClientList

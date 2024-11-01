@@ -3,10 +3,16 @@
 
 :root {
     --color-primary: #194177 !important;
+    --color-primary-hover: #15345e;
     --color-secondary: rgb(126, 20, 20) !important;
     --font-color: #fff;
 }
 
+.NavHeader-title {
+    font-size: 20px;
+    color: white;
+    text-align: center;
+}
 
 body {
     font-family: 'Source Sans Pro', sans-serif;
@@ -16,9 +22,10 @@ body {
     background-color: var(--color-primary) !important;
 }
 
-.bg-secondary { 
+.bg-secondary {
     background-color: var(--color-secondary) !important;
-    }
+
+}
 
 
 .btn-primary {
@@ -30,13 +37,26 @@ body {
 }
 
 
-.nav-link{
+.nav-link {
     color: var(--font-color) !important;
 }
 
-.nav-link:hover{
+.nav-link.active {
+    background: #15345e !important;
+}
+
+.nav-link:hover {
     background-color: #15345e !important;
 }
+
+.nav-title {
+    color: white !important;
+}
+
+.nav-icon {
+    color: white !important;
+}
+
 
 .homeheader {
     display: flex;

@@ -24,9 +24,21 @@ import { cilOptions, cilPlus, cilPencil, cilTrash } from '@coreui/icons'
 
 const ProjectManagement = () => {
   const [projects, setProjects] = useState([
-    { id: 1, name: 'Remodelación Cocina', client: 'Juan Pérez', progress: 75, status: 'En progreso' },
+    {
+      id: 1,
+      name: 'Remodelación Cocina',
+      client: 'Juan Pérez',
+      progress: 75,
+      status: 'En progreso',
+    },
     { id: 2, name: 'Baño Principal', client: 'María García', progress: 30, status: 'En progreso' },
-    { id: 3, name: 'Ampliación Sala', client: 'Carlos Rodríguez', progress: 100, status: 'Completado' },
+    {
+      id: 3,
+      name: 'Ampliación Sala',
+      client: 'Carlos Rodríguez',
+      progress: 100,
+      status: 'Completado',
+    },
     { id: 4, name: 'Terraza', client: 'Ana Martínez', progress: 0, status: 'Pendiente' },
   ])
 
@@ -81,9 +93,7 @@ const ProjectManagement = () => {
                       </div>
                       <CProgress thin color="info" value={project.progress} />
                     </CTableDataCell>
-                    <CTableDataCell>
-                      {getStatusBadge(project.status)}
-                    </CTableDataCell>
+                    <CTableDataCell>{getStatusBadge(project.status)}</CTableDataCell>
                     <CTableDataCell>
                       <CDropdown alignment="end">
                         <CDropdownToggle color="transparent" caret={false} className="p-0">
