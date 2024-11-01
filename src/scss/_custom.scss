@@ -59,8 +59,15 @@ body {
 
 
 .homeheader {
+    color: black;
     display: flex;
     width: 100%;
+}
+.navlink-home{
+    color: black !important;
+}
+.navlink-home:hover{
+    color: white !important;
 }
 
 .dbheader {
