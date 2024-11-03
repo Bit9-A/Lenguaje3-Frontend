@@ -26,29 +26,29 @@ const ProjectManagement = () => {
   const [projects, setProjects] = useState([
     {
       id: 1,
-      name: 'Remodelación Cocina',
+      name: 'Kitchen Remodeling',
       client: 'Juan Pérez',
       progress: 75,
-      status: 'En progreso',
+      status: 'In Progress',
     },
-    { id: 2, name: 'Baño Principal', client: 'María García', progress: 30, status: 'En progreso' },
+    { id: 2, name: 'Main Bathroom', client: 'María García', progress: 30, status: 'In Progress' },
     {
       id: 3,
-      name: 'Ampliación Sala',
+      name: 'Living Room Expansion',
       client: 'Carlos Rodríguez',
       progress: 100,
-      status: 'Completado',
+      status: 'Completed',
     },
-    { id: 4, name: 'Terraza', client: 'Ana Martínez', progress: 0, status: 'Pendiente' },
+    { id: 4, name: 'Terrace', client: 'Ana Martínez', progress: 0, status: 'Pending' },
   ])
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'En progreso':
+      case 'In Progress':
         return <CBadge color="primary">{status}</CBadge>
-      case 'Completado':
+      case 'Completed':
         return <CBadge color="success">{status}</CBadge>
-      case 'Pendiente':
+      case 'Pending':
         return <CBadge color="warning">{status}</CBadge>
       default:
         return <CBadge color="secondary">{status}</CBadge>
@@ -60,25 +60,25 @@ const ProjectManagement = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Gestión de Proyectos de Remodelación</strong>
+            <strong>Project Management for Remodeling</strong>
             <CButton color="primary" className="float-end">
-              <CIcon icon={cilPlus} /> Nuevo Proyecto
+              <CIcon icon={cilPlus} /> New Project
             </CButton>
           </CCardHeader>
           <CCardBody>
             <CTable align="middle" className="mb-0 border" hover responsive>
               <CTableHead color="light">
                 <CTableRow>
-                  <CTableHeaderCell>Nombre del Proyecto</CTableHeaderCell>
-                  <CTableHeaderCell>Cliente</CTableHeaderCell>
-                  <CTableHeaderCell>Progreso</CTableHeaderCell>
-                  <CTableHeaderCell>Estado</CTableHeaderCell>
-                  <CTableHeaderCell>Acciones</CTableHeaderCell>
+                  <CTableHeaderCell>Project Name</CTableHeaderCell>
+                  <CTableHeaderCell>Client</CTableHeaderCell>
+                  <CTableHeaderCell>Progress</CTableHeaderCell>
+                  <CTableHeaderCell>Status</CTableHeaderCell>
+                  <CTableHeaderCell>Actions</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
                 {projects.map((project, index) => (
-                  <CTableRow v-for="item in tableItems" key={index}>
+                  <CTableRow key={index}>
                     <CTableDataCell>
                       <div>{project.name}</div>
                     </CTableDataCell>
@@ -101,10 +101,10 @@ const ProjectManagement = () => {
                         </CDropdownToggle>
                         <CDropdownMenu>
                           <CDropdownItem href="#">
-                            <CIcon icon={cilPencil} /> Editar
+                            <CIcon icon={cilPencil} /> Edit
                           </CDropdownItem>
                           <CDropdownItem href="#">
-                            <CIcon icon={cilTrash} /> Eliminar
+                            <CIcon icon={cilTrash} /> Delete
                           </CDropdownItem>
                         </CDropdownMenu>
                       </CDropdown>
