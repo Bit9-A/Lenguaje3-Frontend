@@ -100,12 +100,6 @@ const _nav = [
     to: '/admin/reports',
     icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
   },
-  {
-    component: CNavItem,
-    name: 'Comunicación',
-    to: '/communication/messages',
-    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
-  },
 ]
 
 export default _nav;

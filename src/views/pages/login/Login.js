@@ -18,8 +18,8 @@ import { cilLockLocked, cilUser, cilHome } from '@coreui/icons'
 
 const Login = () => {
   return (
-    <div className="bg-light min-vh-100 d-flex flex-row align-items-center">
-      <CContainer>
+    <div className="min-vh-100 d-flex flex-row align-items-center bg-image">
+      <CContainer >
         <CRow className="justify-content-center">
           <CCol md={8}>
             <CCardGroup>

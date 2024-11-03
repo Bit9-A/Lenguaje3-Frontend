@@ -30,6 +30,7 @@ body {
 
 .btn-primary {
     background-color: var(--color-primary) !important;
+    border: #15345e;
 }
 
 .btn-link {
@@ -72,4 +73,19 @@ body {
 
 .dbheader {
     background-color: var(--color-primary);
+}
+
+.bg-image {
+    background-image: url('/src/assets/images/Fondo.jpg') !important; 
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    height: 100vh; 
+}
+.bg-register{
+    background-image: url('/src/assets/images/Fondo2.jpg') !important;
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    height: 100vh; 
 }

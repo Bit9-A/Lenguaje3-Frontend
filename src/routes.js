@@ -14,9 +14,10 @@ const ClientInteractions = React.lazy(() => import('./views/pages/clients/Client
 const ReceivedProposals = React.lazy(() => import ('./views/pages/proposals/ReceivedProposals'))
 const ProposalHistory = React.lazy(() => import ('./views/pages/proposals/ProposalHistory'))
 const ProgressTracking =  React.lazy(() => import ('./views/pages/projects/ProgressTracking'))
-const ServiceBooking =  React.lazy(() => import ('./views/pages/services/ServiceBooking'))
-const Payments =  React.lazy(() => import ('./views/pages/payments/Payments'))
+const ServiceBooking =  React.lazy(() => import ('./views/pages/projects/ServiceBooking'))
+const Payments =  React.lazy(() => import ('./views/pages/projects/Payments'))
 
+const Employees = React.lazy(() => import ('./views/pages/admin/Employees'))
 
 
 const routes = [
@@ -30,6 +31,7 @@ const routes = [
   { path: '/projects/progress', name: 'ProgressTracking', element: ProgressTracking },
   { path: '/services/reservations', name: 'ProgressTracking', element: ServiceBooking },
   { path: '/billing/payments', name: 'Payments', element: Payments },
+  { path: '/admin/employees', name: 'Employees', element: Employees },
 ]
 
 export default routes
