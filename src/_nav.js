@@ -52,14 +52,8 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Desarrollo de Proyectos',
-    to: '/projects/development',
-    icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
     name: 'Seguimiento de Progreso',
-    to: '/progress/tracking',
+    to: '/projects/progress',
     icon: <CIcon icon={cilChartPie} customClassName="nav-icon" />,
   },
   {
@@ -80,8 +74,8 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Propuestas Recibidas',
-    to: '/proposals/received',
+    name: 'Propuestas Pendientes',
+    to: '/proposals/pending',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
   },
   {
@@ -114,4 +108,4 @@ const _nav = [
   },
 ]
 
-export default _nav
+export default _nav;

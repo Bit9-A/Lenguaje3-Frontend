@@ -1,5 +1,5 @@
 import { elements } from 'chart.js'
-import react from 'react'
+import { element } from 'prop-types'
 import React from 'react'
 
 
@@ -11,6 +11,9 @@ const ProjectManagement = React.lazy(() => import('./views/pages/projects/projec
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const ClientInteractions = React.lazy(() => import('./views/pages/clients/ClientInteractions'))
 const ReceivedProposals = React.lazy(() => import ('./views/pages/proposals/ReceivedProposals'))
+const ProposalHistory = React.lazy(() => import ('./views/pages/proposals/ProposalHistory'))
+const ProgressTracking =  React.lazy(() => import ('./views/pages/projects/ProgressTracking'))
+
 
 
 const routes = [
@@ -19,7 +22,9 @@ const routes = [
   { path: '/clients/list', name: 'ClientList', element: ClientList },
   { path: '/projects/manage', name: 'ProjectsManage', element: ProjectManagement },
   { path: '/clients/interactions', name: 'ClientInteractions', element: ClientInteractions},
-  { path: '/proposals/received', name: 'ProposalsReceived', element: ReceivedProposals },
+  { path: '/proposals/pending', name: 'ProposalsReceived', element: ReceivedProposals },
+  { path: '/proposals/history', name: 'ProposalHistory', element: ProposalHistory },
+  { path: '/projects/progress', name: 'ProgressTracking', element: ProgressTracking },
 ]
 
 export default routes
