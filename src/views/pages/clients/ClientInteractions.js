@@ -24,11 +24,12 @@ import {
   CModalFooter,
   CFormTextarea,
   CFormCheck,
+  CForm,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilSearch, cilPlus, cilPhone, cilEnvelopeClosed, cilPeople, cilNotes } from '@coreui/icons'
 
-const ClientInteracctions = () => {
+const ClientInteractions = () => {
   return (
     <CRow>
       <CCol xs={12}>

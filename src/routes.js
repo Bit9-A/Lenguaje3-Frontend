@@ -28,6 +28,8 @@ const routes = [
   { path: '/proposals/pending', name: 'ProposalsReceived', element: ReceivedProposals },
   { path: '/proposals/history', name: 'ProposalHistory', element: ProposalHistory },
   { path: '/projects/progress', name: 'ProgressTracking', element: ProgressTracking },
+  { path: '/projects/service', name: 'ServiceBooking', element: ServiceBooking },
+  { path: '/clients/interactions', name: 'ServiceBooking', element: ClientInteractions },
   { path: '/services/reservations', name: 'ProgressTracking', element: ServiceBooking },
   { path: '/billing/payments', name: 'Payments', element: Payments },
   { path: '/admin/employees', name: 'Employees', element: Employees },
