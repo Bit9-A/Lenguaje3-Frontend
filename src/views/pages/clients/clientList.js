@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
   CCard,
   CCardBody,
@@ -15,7 +15,6 @@ import {
   CInputGroup,
   CInputGroupText,
   CFormInput,
-  CDropdown,
   CDropdownToggle,
   CDropdownMenu,
   CDropdownItem,
@@ -110,8 +109,8 @@ const ClientList = () => {
 
   const filteredClients = clients.filter(
     (client) =>
-      (client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (client.name.includes(searchTerm) ||
+        client.email.includes(searchTerm)) ||
       (statusFilter === 'Todos' || client.status === statusFilter),
   )
 
@@ -132,7 +131,7 @@ const ClientList = () => {
                   <CFormInput
                     placeholder="Buscar clientes..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={() => { }}
                     className="border-start-0"
                   />
                 </CInputGroup>

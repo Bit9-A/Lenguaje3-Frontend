@@ -22,14 +22,13 @@ import {
   CModalTitle,
   CModalBody,
   CModalFooter,
-  CForm,
   CFormTextarea,
   CFormCheck,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilSearch, cilPlus, cilPhone, cilEnvelopeClosed, cilPeople, cilNotes } from '@coreui/icons'
 
-const ClientInteractions = () => {
+const ClientInteracctions = () => {
   return (
     <CRow>
       <CCol xs={12}>
@@ -84,7 +83,7 @@ const ClientInteractions = () => {
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {/* Dummy Data Row */}
+
                 <CTableRow>
                   <CTableDataCell>John Doe</CTableDataCell>
                   <CTableDataCell>
@@ -102,7 +101,7 @@ const ClientInteractions = () => {
                     </CButton>
                   </CTableDataCell>
                 </CTableRow>
-                {/* Additional dummy rows can be added here */}
+
               </CTableBody>
             </CTable>
           </CCardBody>
@@ -142,7 +141,7 @@ const ClientInteractions = () => {
               ></CFormTextarea>
             </div>
             <div className="mb-3">
-              <CFormCheck 
+              <CFormCheck
                 label="Requires Follow-up"
               />
             </div>
