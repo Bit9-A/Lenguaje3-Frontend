@@ -1,0 +1,442 @@
+{
+  "user_roles": [
+    {
+      "id": "1",
+      "role_name": "Administrator"
+    },
+    {
+      "id": "2",
+      "role_name": "Project Manager"
+    },
+    {
+      "id": "3",
+      "role_name": "Employee"
+    }
+  ],
+  "employee_types": [
+    {
+      "id": "1",
+      "type_name": "Carpenter"
+    },
+    {
+      "id": "2",
+      "type_name": "Electrician"
+    },
+    {
+      "id": "3",
+      "type_name": "Plumber"
+    }
+  ],
+  "budget_types": [
+    {
+      "id": "1",
+      "type_name": "Low Budget"
+    },
+    {
+      "id": "2",
+      "type_name": "Medium Budget"
+    },
+    {
+      "id": "3",
+      "type_name": "High Budget"
+    }
+  ],
+  "material_types": [
+    {
+      "id": "1",
+      "name": "Wood",
+      "price": 50
+    },
+    {
+      "id": "2",
+      "name": "Paint",
+      "price": 30
+    },
+    {
+      "id": "3",
+      "name": "Tiles",
+      "price": 25
+    }
+  ],
+  "payment_types": [
+    {
+      "id": "1",
+      "name": "Credit Card",
+      "description": "Payment via credit card"
+    },
+    {
+      "id": "2",
+      "name": "Bank Transfer",
+      "description": "Direct bank transfer"
+    },
+    {
+      "id": "3",
+      "name": "Cash",
+      "description": "Cash payment"
+    }
+  ],
+  "clients": [
+    {
+      "id": "1",
+      "firstname": "John",
+      "lastname": "Doe",
+      "email": "john@example.com",
+      "phone": "123-456-7890",
+      "address": "123 Main St",
+      "birthdate": "1980-01-01",
+      "gender": "Male",
+      "national_id": "AB123456"
+    },
+    {
+      "id": "2",
+      "firstname": "Jane",
+      "lastname": "Smith",
+      "email": "jane@example.com",
+      "phone": "987-654-3210",
+      "address": "456 Elm St",
+      "birthdate": "1985-05-15",
+      "gender": "Female",
+      "national_id": "CD789012"
+    },
+    {
+      "id": "3",
+      "firstname": "Bob",
+      "lastname": "Johnson",
+      "email": "bob@example.com",
+      "phone": "555-555-5555",
+      "address": "789 Oak St",
+      "birthdate": "1990-12-31",
+      "gender": "Male",
+      "national_id": "EF345678"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "password": "adminpass",
+      "phone": "111-222-3333",
+      "address": "Admin St",
+      "preferences": "Dark Mode",
+      "username": "admin",
+      "role_id": 1,
+      "status": "Active"
+    },
+    {
+      "id": "2",
+      "name": "Manager User",
+      "email": "manager@example.com",
+      "password": "managerpass",
+      "phone": "444-555-6666",
+      "address": "Manager Ave",
+      "preferences": "Light Mode",
+      "username": "manager",
+      "role_id": 2,
+      "status": "Active"
+    },
+    {
+      "id": "3",
+      "name": "Employee User",
+      "email": "employee@example.com",
+      "password": "employeepass",
+      "phone": "777-888-9999",
+      "address": "Employee Blvd",
+      "preferences": "Default",
+      "username": "employee",
+      "role_id": 3,
+      "status": "Active"
+    }
+  ],
+  "employees": [
+    {
+      "id": "1",
+      "firstname": "Alice",
+      "lastname": "Brown",
+      "email": "alice@example.com",
+      "phone": "111-111-1111",
+      "position": "Senior Carpenter",
+      "schedule": "Full-time",
+      "employee_type_id": 1,
+      "birthdate": "1975-03-10",
+      "gender": "Female",
+      "national_id": "GH901234",
+      "hire_date": "2010-01-15"
+    },
+    {
+      "id": "2",
+      "firstname": "Charlie",
+      "lastname": "Davis",
+      "email": "charlie@example.com",
+      "phone": "222-222-2222",
+      "position": "Electrician",
+      "schedule": "Part-time",
+      "employee_type_id": 2,
+      "birthdate": "1988-07-22",
+      "gender": "Male",
+      "national_id": "IJ567890",
+      "hire_date": "2015-06-01"
+    },
+    {
+      "id": "9226",
+      "firstname": "Adrian",
+      "lastname": "Vergel",
+      "email": "teste@exemplo.us",
+      "phone": "3121286800",
+      "position": "2",
+      "status": "Active",
+      "projects": "0",
+      "hireDate": "2024-11-04"
+    }
+  ],
+  "client_proposals": [
+    {
+      "id": "1",
+      "client_id": 1,
+      "proposal_description": "Kitchen Renovation",
+      "proposal_date": "2023-01-10",
+      "budget_type_id": 2,
+      "status": "Accepted"
+    },
+    {
+      "id": "2",
+      "client_id": 2,
+      "proposal_description": "Bathroom Remodel",
+      "proposal_date": "2023-02-15",
+      "budget_type_id": 1,
+      "status": "Accepted"
+    },
+    {
+      "id": "3",
+      "client_id": 3,
+      "proposal_description": "Home Extension",
+      "proposal_date": "2023-03-20",
+      "budget_type_id": 3,
+      "status": "Rejected"
+    }
+  ],
+  "projects": [
+    {
+      "id": "1",
+      "name": "Doe Kitchen Renovation",
+      "description": "Complete kitchen renovation for John Doe",
+      "start_date": "2023-02-01",
+      "end_date": "2023-04-30",
+      "status": "In Progress",
+      "proposal_id": 1,
+      "is_paid": false
+    },
+    {
+      "id": "2",
+      "name": "Smith Bathroom Remodel",
+      "description": "Bathroom remodeling for Jane Smith",
+      "start_date": "2023-03-01",
+      "end_date": "2023-04-15",
+      "status": "Completed",
+      "proposal_id": 2,
+      "is_paid": true
+    },
+    {
+      "id": "3",
+      "name": "Johnson Home Extension",
+      "description": "Home extension project for Bob Johnson",
+      "start_date": "2023-04-01",
+      "end_date": "2023-08-31",
+      "status": "Planning",
+      "proposal_id": 3,
+      "is_paid": false
+    }
+  ],
+  "services": [
+    {
+      "id": "1",
+      "name": "Carpentry",
+      "description": "Custom carpentry work",
+      "price": 500
+    },
+    {
+      "id": "2",
+      "name": "Electrical Installation",
+      "description": "Electrical wiring and fixture installation",
+      "price": 750
+    },
+    {
+      "id": "3",
+      "name": "Plumbing",
+      "description": "Plumbing installation and repair",
+      "price": 600
+    }
+  ],
+  "project_services": [
+    {
+      "project_id": 1,
+      "service_id": 1,
+      "is_paid": true,
+      "status": "Completed",
+      "end_date": "2023-03-15"
+    },
+    {
+      "project_id": 1,
+      "service_id": 2,
+      "is_paid": false,
+      "status": "In Progress",
+      "end_date": "2023-04-15"
+    },
+    {
+      "project_id": 2,
+      "service_id": 3,
+      "is_paid": true,
+      "status": "Completed",
+      "end_date": "2023-04-10"
+    }
+  ],
+  "payments": [
+    {
+      "id": "1",
+      "amount": 1000,
+      "payment_date": "2023-02-15",
+      "project_id": 1,
+      "payment_type_id": 1,
+      "description": "Deposit for Kitchen Renovation",
+      "service_id": null,
+      "material_id": null
+    },
+    {
+      "id": "2",
+      "amount": 750,
+      "payment_date": "2023-03-20",
+      "project_id": 2,
+      "payment_type_id": 2,
+      "description": "Final payment for Bathroom Remodel",
+      "service_id": null,
+      "material_id": null
+    },
+    {
+      "id": "3",
+      "amount": 2000,
+      "payment_date": "2023-04-05",
+      "project_id": 3,
+      "payment_type_id": 3,
+      "description": "Initial payment for Home Extension",
+      "service_id": null,
+      "material_id": null
+    }
+  ],
+  "materials_project": [
+    {
+      "id": "1",
+      "type_id": 1,
+      "quantity": 100,
+      "project_id": 1
+    },
+    {
+      "id": "2",
+      "type_id": 2,
+      "quantity": 50,
+      "project_id": 2
+    },
+    {
+      "id": "3",
+      "type_id": 3,
+      "quantity": 200,
+      "project_id": 3
+    }
+  ],
+  "notifications": [
+    {
+      "id": "1",
+      "message": "Kitchen renovation project started",
+      "sent_at": "2023-02-01T09:00:00Z",
+      "project_id": 1
+    },
+    {
+      "id": "2",
+      "message": "Bathroom remodel completed",
+      "sent_at": "2023-04-15T16:30:00Z",
+      "project_id": 2
+    },
+    {
+      "id": "3",
+      "message": "Home extension planning phase initiated",
+      "sent_at": "2023-04-01T10:15:00Z",
+      "project_id": 3
+    }
+  ],
+  "project_progress": [
+    {
+      "id": "1",
+      "project_id": 1,
+      "progress_description": "Demolition completed",
+      "progress_date": "2023-02-10",
+      "visible": true
+    },
+    {
+      "id": "2",
+      "project_id": 1,
+      "progress_description": "Cabinets installed",
+      "progress_date": "2023-03-05",
+      "visible": true
+    },
+    {
+      "id": "3",
+      "project_id": 2,
+      "progress_description": "Tiling finished",
+      "progress_date": "2023-03-25",
+      "visible": true
+    }
+  ],
+  "project_employees": [
+    {
+      "project_id": 1,
+      "employee_id": 1
+    },
+    {
+      "project_id": 1,
+      "employee_id": 2
+    },
+    {
+      "project_id": 2,
+      "employee_id": 3
+    }
+  ],
+  "client_interactions": [
+    {
+      "id": "1",
+      "client_id": 1,
+      "employee_id": 1,
+      "interaction_date": "2023-01-15",
+      "notes": "Initial consultation for kitchen renovation"
+    },
+    {
+      "id": "2",
+      "client_id": 2,
+      "employee_id": 2,
+      "interaction_date": "2023-02-20",
+      "notes": "Follow-up on bathroom remodel progress"
+    },
+    {
+      "id": "3",
+      "client_id": 3,
+      "employee_id": 3,
+      "interaction_date": "2023-03-25",
+      "notes": "Discussion about home extension plans"
+    }
+  ],
+  "project_service_employees": [
+    {
+      "project_id": 1,
+      "service_id": 1,
+      "employee_id": 1
+    },
+    {
+      "project_id": 1,
+      "service_id": 2,
+      "employee_id": 2
+    },
+    {
+      "project_id": 2,
+      "service_id": 3,
+      "employee_id": 3
+    }
+  ]
+}

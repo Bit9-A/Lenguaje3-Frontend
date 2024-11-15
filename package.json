@@ -18,7 +18,8 @@
     "serve": "vite preview",
     "start": "vite",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "fake-api": "json-server --watch src/api/db.json --port 5000"
   },
   "dependencies": {
     "@coreui/chartjs": "^4.0.0",
@@ -29,6 +30,7 @@
     "@coreui/react-chartjs": "^3.0.0",
     "@coreui/utils": "^2.0.2",
     "@popperjs/core": "^2.11.8",
+    "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.4",
     "classnames": "^2.5.1",

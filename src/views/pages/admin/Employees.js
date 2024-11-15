@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   CCard,
   CCardBody,
@@ -21,6 +21,14 @@ import {
   CDropdownItem,
   CBadge,
   CAvatar,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CForm,
+  CFormLabel,
+  CFormSelect,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -29,69 +37,127 @@ import {
   cilEnvelopeClosed,
   cilPhone,
   cilBriefcase,
+  cilPlus,
 } from '@coreui/icons'
+import { helpHttp } from '../../../helpers/helpHTTP'
+
+const API_URL = 'http://localhost:5000/employees'
 
 const Employees = () => {
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      firstname: 'Juan',
-      lastname: 'Pérez',
-      email: 'juan@gmail.com',
-      phone: '555-0101',
-      position: 'Project Manager',
-      status: 'Active',
-      projects: 2,
-      hireDate: '2021-01-15', 
-    },
-    {
-      id: 2,
-      firstname: 'María',
-      lastname: 'García',
-      email: 'maria@gmail.com',
-      phone: '555-0102',
-      position: 'Designer',
-      status: 'Inactive',
-      projects: 1,
-      hireDate: '2020-03-22', 
-    },
-    {
-      id: 3,
-      firstname: 'Carlos',
-      lastname: 'Rodríguez',
-      email: 'carlos@gmail.com',
-      phone: '555-0103',
-      position: 'Engineer',
-      status: 'Active',
-      projects: 3,
-      hireDate: '2019-07-30', 
-    },
-    {
-      id: 4,
-      firstname: 'Ana',
-      lastname: 'Martínez',
-      email: 'ana@gmail.com',
-      phone: '555-0104',
-      position: 'Intern',
-      status: 'Potential',
-      projects: 0,
-      hireDate: '2022-05-10', 
-    },
-    {
-      id: 5,
-      firstname: 'Luis',
-      lastname: 'Sánchez',
-      email: 'luis@gmail.com',
-      phone: '555-0105',
-      position: 'Architect',
-      status: 'Active',
-      projects: 1,
-      hireDate: '2021-11-01', 
-    },
-  ])
-
+  const [employees, setEmployees] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [showModal, setShowModal] = useState(false)
+  const [currentEmployee, setCurrentEmployee] = useState(null)
+  const [formData, setFormData] = useState({
+    firstname: '',
+    lastname: '',
+    email: '',
+    phone: '',
+    position: '',
+    status: 'Active',
+    projects: 0,
+    hireDate: '',
+  })
+  let api = helpHttp()
+  let url = 'http://localhost:5000/employees'
+
+  useEffect(() => {
+    api.get(url).then((res) => {
+      console.log(res)
+      if (!res.err) {
+        setEmployees(res)
+      } else {
+        setEmployees(null)
+      }
+    })
+  }, [])
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (currentEmployee) {
+      await updateEmployee(currentEmployee.id, formData)
+    } else {
+      await addEmployee(formData)
+    }
+    setShowModal(false)
+    setCurrentEmployee(null)
+    setFormData({
+      firstname: '',
+      lastname: '',
+      email: '',
+      phone: '',
+      position: '',
+      status: 'Active',
+      projects: 0,
+      hireDate: '',
+    })
+    api.get(url).then((res) => {
+      if (!res.err) {
+        setEmployees(res)
+      } else {
+        setEmployees(null)
+      }
+    })
+  }
+
+  const addEmployee = async (employee) => {
+    try {
+      await api.post(url, { body: employee })
+    } catch (error) {
+      console.error('Error adding employee:', error)
+    }
+  }
+
+  const updateEmployee = async (id, employee) => {
+    try {
+      await api.put(`${url}/${id}`, { body: employee })
+    } catch (error) {
+      console.error('Error updating employee:', error)
+    }
+  }
+
+  const deleteEmployee = async (id) => {
+    if (window.confirm('Are you sure you want to delete this employee?')) {
+      try {
+        await api.del(`${url}/${id}`)
+        api.get(url).then((res) => {
+          if (!res.err) {
+            setEmployees(res)
+          } else {
+            setEmployees(null)
+          }
+        })
+      } catch (error) {
+        console.error('Error deleting employee:', error)
+      }
+    }
+  }
+
+  const openModal = (employee = null) => {
+    if (employee) {
+      setCurrentEmployee(employee)
+      setFormData(employee)
+    } else {
+      setCurrentEmployee(null)
+      setFormData({
+        firstname: '',
+        lastname: '',
+        email: '',
+        phone: '',
+        position: '',
+        status: 'Active',
+        projects: 0,
+        hireDate: '',
+      })
+    }
+    setShowModal(true)
+  }
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -122,24 +188,30 @@ const Employees = () => {
     }
   }
 
-  const filteredEmployees = employees.filter(
-    (employee) =>
-      (employee.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (statusFilter === 'All' || employee.status === statusFilter),
-  )
+  const filteredEmployees = employees
+    ? employees.filter(
+        (employee) =>
+          (employee.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            employee.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            employee.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+          (statusFilter === 'All' || employee.status === statusFilter),
+      )
+    : []
 
   return (
     <CRow>
       <CCol xs={12}>
         <CCard className="mb-4 shadow-sm">
-          <CCardHeader className="bg-transparent border-bottom-0">
+          <CCardHeader className="bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
             <h2 className="mb-0">Employee List</h2>
+            <CButton color="primary" onClick={() => openModal()}>
+              <CIcon icon={cilPlus} className="me-2" />
+              Add Employee
+            </CButton>
           </CCardHeader>
           <CCardBody>
             <CRow className="mb-4 align-items-center">
-            <CCol md={6} className="mb-3 mb-md-0">
+              <CCol md={6} className="mb-3 mb-md-0">
                 <CInputGroup>
                   <CInputGroupText className="bg-light">
                     <CIcon icon={cilSearch} />
@@ -213,11 +285,9 @@ const Employees = () => {
                         {employee.phone}
                       </div>
                     </CTableDataCell>
+                    <CTableDataCell className="text-center">{employee.position}</CTableDataCell>
                     <CTableDataCell className="text-center">
-                      {employee.position}
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      {new Date(employee.hireDate).toLocaleDateString()} {/* Format the hire date */}
+                      {new Date(employee.hireDate).toLocaleDateString()}
                     </CTableDataCell>
                     <CTableDataCell className="text-center">
                       {getStatusBadge(employee.status)}
@@ -233,9 +303,11 @@ const Employees = () => {
                           <CIcon icon={cilOptions} />
                         </CDropdownToggle>
                         <CDropdownMenu>
-                          <CDropdownItem href="#">View Details</CDropdownItem>
-                          <CDropdownItem href="#">Edit</CDropdownItem>
-                          <CDropdownItem href="#" className="text-danger">
+                          <CDropdownItem onClick={() => openModal(employee)}>Edit</CDropdownItem>
+                          <CDropdownItem
+                            onClick={() => deleteEmployee(employee.id)}
+                            className="text-danger"
+                          >
                             Delete
                           </CDropdownItem>
                         </CDropdownMenu>
@@ -248,6 +320,116 @@ const Employees = () => {
           </CCardBody>
         </CCard>
       </CCol>
+
+      <CModal visible={showModal} onClose={() => setShowModal(false)}>
+        <CForm onSubmit={handleSubmit}>
+          <CModalHeader closeButton>
+            <CModalTitle>{currentEmployee ? 'Edit Employee' : 'Add Employee'}</CModalTitle>
+          </CModalHeader>
+          <CModalBody>
+            <CRow>
+              <CCol md={6}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="firstname">First Name</CFormLabel>
+                  <CFormInput
+                    id="firstname"
+                    name="firstname"
+                    value={formData.firstname}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </CCol>
+              <CCol md={6}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="lastname">Last Name</CFormLabel>
+                  <CFormInput
+                    id="lastname"
+                    name="lastname"
+                    value={formData.lastname}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </CCol>
+            </CRow>
+            <div className="mb-3">
+              <CFormLabel htmlFor="email">Email</CFormLabel>
+              <CFormInput
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="phone">Phone</CFormLabel>
+              <CFormInput
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="position">Position</CFormLabel>
+              <CFormInput
+                id="position"
+                name="position"
+                value={formData.position}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="status">Status</CFormLabel>
+              <CFormSelect
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Potential">Potential</option>
+              </CFormSelect>
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="projects">Projects</CFormLabel>
+              <CFormInput
+                type="number"
+                id="projects"
+                name="projects"
+                value={formData.projects}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="hireDate">Hire Date</CFormLabel>
+              <CFormInput
+                type="date"
+                id="hireDate"
+                name="hireDate"
+                value={formData.hireDate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </CModalBody>
+          <CModalFooter>
+            <CButton color="secondary" onClick={() => setShowModal(false)}>
+              Close
+            </CButton>
+            <CButton color="primary" type="submit">
+              {currentEmployee ? 'Update' : 'Add'} Employee
+            </CButton>
+          </CModalFooter>
+        </CForm>
+      </CModal>
     </CRow>
   )
 }

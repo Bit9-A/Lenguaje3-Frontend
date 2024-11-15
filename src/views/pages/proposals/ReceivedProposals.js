@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   CCard,
   CCardBody,
@@ -21,11 +21,114 @@ import {
   CModalTitle,
   CModalBody,
   CModalFooter,
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilSearch, cilCheckCircle, cilXCircle } from '@coreui/icons'
+import { cilSearch, cilCheckCircle, cilXCircle,  } from '@coreui/icons'
+import { helpHttp } from '../../../helpers/helpHTTP'
 
 const ReceivedProposals = () => {
+  const [proposals, setProposals] = useState([])
+  const [clients, setClients] = useState([])
+  const [budgetTypes, setBudgetTypes] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedProposal, setSelectedProposal] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  
+
+  const api = helpHttp()
+  const baseUrl = 'http://localhost:5000'
+
+  const getClientName = (clientId) => {
+    const client = clients.find(c => c.id === clientId.toString()); 
+    return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client';
+  }
+  
+  const getBudgetTypeName = (budgetTypeId) => {
+    const budgetType = budgetTypes.find(bt => bt.id === budgetTypeId.toString()); 
+    return budgetType ? budgetType.type_name : 'Unknown Budget Type';
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+        const proposalsRes = await api.get(`${baseUrl}/client_proposals`)
+        const clientsRes = await api.get(`${baseUrl}/clients`)
+        const budgetTypesRes = await api.get(`${baseUrl}/budget_types`)
+
+        if (!proposalsRes.err && !clientsRes.err && !budgetTypesRes.err) {
+          setProposals(proposalsRes)
+          setClients(clientsRes)
+          setBudgetTypes(budgetTypesRes)
+          setError(null)
+        }
+    }
+
+    fetchData()
+  }, [])
+
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value)
+  }
+
+  const filteredProposals = proposals.filter(proposal =>
+    (clients.length > 0 ? getClientName(proposal.client_id).toLowerCase().includes(searchTerm.toLowerCase()) : true) ||
+    proposal.proposal_description.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const handleViewProposal = (proposal) => {
+    setSelectedProposal(proposal)
+    setShowModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setSelectedProposal(null)
+  }
+
+  const handleApproveProposal = async () => {
+    if (selectedProposal) {
+      const updatedProposal = { ...selectedProposal, status: 'Accepted' }
+      const res = await api.put(`${baseUrl}/client_proposals/${selectedProposal.id}`, { body: updatedProposal })
+      if (!res.err) {
+        const updatedProposals = proposals.map(p =>
+          p.id === selectedProposal.id ? updatedProposal : p
+        )
+        setProposals(updatedProposals)
+        handleCloseModal()
+      } else {
+        setError('Error updating proposal. Please try again.')
+      }
+    }
+  }
+
+  const handleRejectProposal = async () => {
+    if (selectedProposal) {
+      const updatedProposal = { ...selectedProposal, status: 'Rejected' }
+      const res = await api.put(`${baseUrl}/client_proposals/${selectedProposal.id}`, { body: updatedProposal })
+      if (!res.err) {
+        const updatedProposals = proposals.map(p =>
+          p.id === selectedProposal.id ? updatedProposal : p
+        )
+        setProposals(updatedProposals)
+        handleCloseModal()
+      } else {
+        setError('Error updating proposal. Please try again.')
+      }
+    }
+  }
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Accepted':
+        return <CBadge color="success" shape="rounded-pill">{status}</CBadge>
+      case 'Rejected':
+        return <CBadge color="danger" shape="rounded-pill">{status}</CBadge>
+      default:
+        return <CBadge color="warning" shape="rounded-pill">{status}</CBadge>
+    }
+  }
+
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -42,6 +145,8 @@ const ReceivedProposals = () => {
                   </CInputGroupText>
                   <CFormInput
                     placeholder="Search proposals..."
+                    value={searchTerm}
+                    onChange={handleSearch}
                     className="border-start-0"
                   />
                 </CInputGroup>
@@ -51,82 +156,70 @@ const ReceivedProposals = () => {
               <CTableHead>
                 <CTableRow className="bg-light">
                   <CTableHeaderCell>Client</CTableHeaderCell>
-                  <CTableHeaderCell>Project</CTableHeaderCell>
+                  <CTableHeaderCell>Description</CTableHeaderCell>
                   <CTableHeaderCell>Date</CTableHeaderCell>
+                  <CTableHeaderCell>Budget Type</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-               
-                <CTableRow>
-                  <CTableDataCell>John Doe</CTableDataCell>
-                  <CTableDataCell>Kitchen Remodeling</CTableDataCell>
-                  <CTableDataCell>2023-05-15</CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CBadge color="warning" shape="rounded-pill">Pending</CBadge>
-                  </CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CButton color="info" variant="ghost" size="sm">
-                      <CIcon icon={""} /> View
-                    </CButton>
-                  </CTableDataCell>
-                </CTableRow>
-                <CTableRow>
-                  <CTableDataCell></CTableDataCell>
-                  <CTableDataCell></CTableDataCell>
-                  <CTableDataCell></CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CBadge color="success" shape="rounded-pill">Approve</CBadge>
-                  </CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CButton color="info" variant="ghost" size="sm">
-                      <CIcon icon={""} /> View
-                    </CButton>
-                  </CTableDataCell>
-                </CTableRow>
-                <CTableRow>
-                  <CTableDataCell></CTableDataCell>
-                  <CTableDataCell></CTableDataCell>
-                  <CTableDataCell></CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CBadge color="danger" shape="rounded-pill">Reject</CBadge>
-                  </CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CButton color="info" variant="ghost" size="sm">
-                      <CIcon icon={""} /> View
-                    </CButton>
-                  </CTableDataCell>
-                </CTableRow>
-        
+                {filteredProposals.map((proposal) => (
+                  <CTableRow key={proposal.id}>
+                    <CTableDataCell>{getClientName(proposal.client_id)}</CTableDataCell>
+                    <CTableDataCell>{proposal.proposal_description}</CTableDataCell>
+                    <CTableDataCell>{proposal.proposal_date}</CTableDataCell>
+                    <CTableDataCell>{getBudgetTypeName(proposal.budget_type_id)}</CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      {getStatusBadge(proposal.status)}
+                    </CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      <CButton 
+                        color="info" 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewProposal(proposal)}
+                      >
+                        <CIcon icon={""} /> View
+                      </CButton>
+                    </CTableDataCell>
+                  </CTableRow>
+                ))}
               </CTableBody>
             </CTable>
           </CCardBody>
         </CCard>
       </CCol>
 
-      <CModal visible={true} onClose={() => {}}>
+      <CModal visible={showModal} onClose={handleCloseModal}>
         <CModalHeader closeButton>
           <CModalTitle>Proposal Details</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <p><strong>Client:</strong> John Doe</p>
-          <p><strong>Project:</strong> Kitchen Remodeling</p>
-          <p><strong>Date:</strong> 2023-05-15</p>
-          <p><strong>Status:</strong> <CBadge color="warning" shape="rounded-pill">Pending</CBadge></p>
-
- 
+          {selectedProposal && (
+            <>
+              <p><strong>Client:</strong> {getClientName(selectedProposal.client_id)}</p>
+              <p><strong>Description:</strong> {selectedProposal.proposal_description}</p>
+              <p><strong>Date:</strong> {selectedProposal.proposal_date}</p>
+              <p><strong>Budget Type:</strong> {getBudgetTypeName(selectedProposal.budget_type_id)}</p>
+              <p><strong>Status:</strong> {getStatusBadge(selectedProposal.status)}</p>
+            </>
+          )}
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => {}}>
+          <CButton color="secondary" onClick={handleCloseModal}>
             Close
           </CButton>
-          <CButton color="success">
-            <CIcon icon={cilCheckCircle} /> Approve
-          </CButton>
-          <CButton color="danger">
-            <CIcon icon={cilXCircle} /> Reject
-          </CButton>
+          {selectedProposal && selectedProposal.status === 'Pending' && (
+            <>
+              <CButton color="success" onClick={handleApproveProposal}>
+                <CIcon icon={cilCheckCircle} /> Approve
+              </CButton>
+              <CButton color="danger" onClick={handleRejectProposal}>
+                <CIcon icon={cilXCircle} /> Reject
+              </CButton>
+            </>
+          )}
         </CModalFooter>
       </CModal>
     </CRow>
