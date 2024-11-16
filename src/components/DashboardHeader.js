@@ -30,7 +30,7 @@ import { AppHeaderDropdown } from './header/index'
 
 const AppHeader = ({ type }) => {
   const headerRef = useRef()
-  const { colorMode, setColorMode } = useColorModes('')
+
 
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
