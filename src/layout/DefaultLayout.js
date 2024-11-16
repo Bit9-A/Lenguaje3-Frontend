@@ -21,7 +21,9 @@ const DefaultLayout = () => {
     '/proposals/history',
     '/admin/employees',
     '/admin/reports',
+    '/admin/users',
     '/communication/messages',
+    
   ];
 
   const isDashBoard = dashboardRoutes.includes(location.pathname);

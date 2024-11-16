@@ -78,7 +78,7 @@
   "clients": [
     {
       "id": "1",
-      "firstname": "John",
+      "firstname": "Johnf",
       "lastname": "Doe",
       "email": "john@example.com",
       "phone": "123-456-7890",
@@ -192,27 +192,30 @@
   "client_proposals": [
     {
       "id": "1",
-      "client_id": 1,
+      "client_id": "1",
       "proposal_description": "Kitchen Renovation",
       "proposal_date": "2023-01-10",
-      "budget_type_id": 2,
-      "status": "Accepted"
+      "budget_type_id": "2",
+      "status": "Accepted",
+      "comments": [
+        "ada"
+      ]
     },
     {
       "id": "2",
-      "client_id": 2,
+      "client_id": "2",
       "proposal_description": "Bathroom Remodel",
       "proposal_date": "2023-02-15",
-      "budget_type_id": 1,
+      "budget_type_id": "1",
       "status": "Accepted"
     },
     {
       "id": "3",
-      "client_id": 3,
+      "client_id": "3",
       "proposal_description": "Home Extension",
       "proposal_date": "2023-03-20",
-      "budget_type_id": 3,
-      "status": "Rejected"
+      "budget_type_id": "3",
+      "status": "Accepted"
     }
   ],
   "projects": [
@@ -237,13 +240,13 @@
       "is_paid": true
     },
     {
-      "id": "3",
-      "name": "Johnson Home Extension",
-      "description": "Home extension project for Bob Johnson",
-      "start_date": "2023-04-01",
-      "end_date": "2023-08-31",
+      "id": "13af",
+      "name": "Kitchen Renovation",
+      "description": "Kitchen Renovation",
+      "start_date": "2024-11-16",
+      "end_date": null,
       "status": "Planning",
-      "proposal_id": 3,
+      "proposal_id": "1",
       "is_paid": false
     }
   ],
@@ -265,6 +268,12 @@
       "name": "Plumbing",
       "description": "Plumbing installation and repair",
       "price": 600
+    },
+    {
+      "id": "2165",
+      "name": "Remodelacion de Baño",
+      "description": "blah blah",
+      "price": "100"
     }
   ],
   "project_services": [
@@ -273,21 +282,64 @@
       "service_id": 1,
       "is_paid": true,
       "status": "Completed",
-      "end_date": "2023-03-15"
+      "end_date": "2023-03-15",
+      "id": "b7af"
     },
     {
       "project_id": 1,
       "service_id": 2,
       "is_paid": false,
       "status": "In Progress",
-      "end_date": "2023-04-15"
+      "end_date": "2023-04-15",
+      "id": "5f0d"
     },
     {
       "project_id": 2,
       "service_id": 3,
       "is_paid": true,
       "status": "Completed",
-      "end_date": "2023-04-10"
+      "end_date": "2023-04-10",
+      "id": "e7f2"
+    },
+    {
+      "id": "5e72",
+      "project_id": "1",
+      "service_id": 1,
+      "is_paid": false,
+      "status": "In Progress",
+      "end_date": null
+    },
+    {
+      "id": "102c",
+      "project_id": "1",
+      "service_id": 1,
+      "is_paid": false,
+      "status": "In Progress",
+      "end_date": null
+    },
+    {
+      "id": "93c3",
+      "project_id": "1",
+      "service_id": 1,
+      "is_paid": true,
+      "status": "Completed",
+      "end_date": null
+    },
+    {
+      "id": "9593",
+      "project_id": "13af",
+      "service_id": 1,
+      "is_paid": true,
+      "status": "Completed",
+      "end_date": null
+    },
+    {
+      "id": "0e89",
+      "project_id": "2cd0",
+      "service_id": 1,
+      "is_paid": true,
+      "status": "Completed",
+      "end_date": null
     }
   ],
   "payments": [
@@ -388,15 +440,18 @@
   "project_employees": [
     {
       "project_id": 1,
-      "employee_id": 1
+      "employee_id": 1,
+      "id": "6c1d"
     },
     {
       "project_id": 1,
-      "employee_id": 2
+      "employee_id": 2,
+      "id": "72b9"
     },
     {
       "project_id": 2,
-      "employee_id": 3
+      "employee_id": 3,
+      "id": "b808"
     }
   ],
   "client_interactions": [
@@ -426,17 +481,20 @@
     {
       "project_id": 1,
       "service_id": 1,
-      "employee_id": 1
+      "employee_id": 1,
+      "id": "5195"
     },
     {
       "project_id": 1,
       "service_id": 2,
-      "employee_id": 2
+      "employee_id": 2,
+      "id": "fb6c"
     },
     {
       "project_id": 2,
       "service_id": 3,
-      "employee_id": 3
+      "employee_id": 3,
+      "id": "88b8"
     }
   ]
 }

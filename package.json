@@ -19,7 +19,7 @@
     "start": "vite",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "fake-api": "json-server --watch src/api/db.json --port 5000"
+    "start:fake-api": "npx json-server --watch src/api/db.json --port 5000"
   },
   "dependencies": {
     "@coreui/chartjs": "^4.0.0",
