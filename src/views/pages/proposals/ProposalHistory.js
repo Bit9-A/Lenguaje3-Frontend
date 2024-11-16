@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   CCard,
   CCardBody,
@@ -26,39 +26,48 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilSearch, cilCommentSquare, cilClock } from '@coreui/icons'
+import { helpHttp } from '../../../helpers/helpHTTP'
 
 const ProposalHistory = () => {
-  const [proposals, setProposals] = useState([
-    { id: 1, client: 'John Doe', project: 'Kitchen Remodeling', date: '2023-05-15', status: 'Approved', comments: ['Great project!', 'Completed on time.'] },
-    { id: 2, client: 'Jane Smith', project: 'Master Bathroom', date: '2023-05-16', status: 'Rejected', comments: ['Budget too high', 'Client went with another contractor.'] },
-    { id: 3, client: 'Robert Johnson', project: 'Living Room Extension', date: '2023-05-17', status: 'Completed', comments: ['Excellent work', 'Client very satisfied.'] },
-    { id: 4, client: 'Emily Brown', project: 'Terrace', date: '2023-05-18', status: 'In Progress', comments: ['Started on time', 'Minor delays due to weather.'] },
-    { id: 5, client: 'Michael Wilson', project: 'Master Bedroom', date: '2023-05-19', status: 'Approved', comments: ['Awaiting materials', 'Start date confirmed.'] },
-  ])
-
+  const [proposals, setProposals] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProposal, setSelectedProposal] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [newComment, setNewComment] = useState('')
 
+  const api = helpHttp()
+  const baseUrl = 'http://localhost:5000'
+
+  useEffect(() => {
+    fetchProposals()
+  }, [])
+
+  const fetchProposals = async () => {
+    const response = await api.get(`${baseUrl}/client_proposals`)
+    if (!response.err) {
+      const filteredProposals = response.filter(proposal => 
+        proposal.status === 'Accepted' || proposal.status === 'Rejected'
+      )
+      setProposals(filteredProposals)
+    } else {
+      console.error('Error fetching proposals:', response.err)
+    }
+  }
+
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Approved':
+      case 'Accepted':
         return <CBadge color="success" shape="rounded-pill">{status}</CBadge>
       case 'Rejected':
         return <CBadge color="danger" shape="rounded-pill">{status}</CBadge>
-      case 'Completed':
-        return <CBadge color="info" shape="rounded-pill">{status}</CBadge>
-      case 'In Progress':
-        return <CBadge color="warning" shape="rounded-pill">{status}</CBadge>
       default:
         return <CBadge color="secondary" shape="rounded-pill">{status}</CBadge>
     }
   }
 
   const filteredProposals = proposals.filter(proposal =>
-    proposal.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    proposal.project.toLowerCase().includes(searchTerm.toLowerCase())
+    proposal.proposal_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    proposal.client_id.toString().includes(searchTerm.toLowerCase())
   )
 
   const handleViewDetails = (proposal) => {
@@ -66,17 +75,23 @@ const ProposalHistory = () => {
     setShowModal(true)
   }
 
-  const handleAddComment = (e) => {
+  const handleAddComment = async (e) => {
     e.preventDefault()
-    if (newComment.trim() !== '') {
-      const updatedProposals = proposals.map(p =>
-        p.id === selectedProposal.id
-          ? { ...p, comments: [...p.comments, newComment.trim()] }
-          : p
-      )
-      setProposals(updatedProposals)
-      setSelectedProposal({ ...selectedProposal, comments: [...selectedProposal.comments, newComment.trim()] })
-      setNewComment('')
+    if (newComment.trim() !== '' && selectedProposal) {
+      const updatedProposal = {
+        ...selectedProposal,
+        comments: [...(selectedProposal.comments || []), newComment.trim()]
+      }
+      const response = await api.put(`${baseUrl}/client_proposals/${selectedProposal.id}`, { body: updatedProposal })
+      if (!response.err) {
+        setProposals(proposals.map(p =>
+          p.id === selectedProposal.id ? updatedProposal : p
+        ))
+        setSelectedProposal(updatedProposal)
+        setNewComment('')
+      } else {
+        console.error('Error adding comment:', response.err)
+      }
     }
   }
 
@@ -106,8 +121,8 @@ const ProposalHistory = () => {
             <CTable align="middle" className="mb-0 border" hover responsive>
               <CTableHead>
                 <CTableRow className="bg-light">
-                  <CTableHeaderCell>Client</CTableHeaderCell>
-                  <CTableHeaderCell>Project</CTableHeaderCell>
+                  <CTableHeaderCell>Client ID</CTableHeaderCell>
+                  <CTableHeaderCell>Project Description</CTableHeaderCell>
                   <CTableHeaderCell>Date</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
@@ -116,9 +131,9 @@ const ProposalHistory = () => {
               <CTableBody>
                 {filteredProposals.map((proposal) => (
                   <CTableRow key={proposal.id}>
-                    <CTableDataCell>{proposal.client}</CTableDataCell>
-                    <CTableDataCell>{proposal.project}</CTableDataCell>
-                    <CTableDataCell>{proposal.date}</CTableDataCell>
+                    <CTableDataCell>{proposal.client_id}</CTableDataCell>
+                    <CTableDataCell>{proposal.proposal_description}</CTableDataCell>
+                    <CTableDataCell>{proposal.proposal_date}</CTableDataCell>
                     <CTableDataCell className="text-center">
                       {getStatusBadge(proposal.status)}
                     </CTableDataCell>
@@ -147,12 +162,12 @@ const ProposalHistory = () => {
         <CModalBody>
           {selectedProposal && (
             <>
-              <h4>{selectedProposal.project}</h4>
-              <p><strong>Client:</strong> {selectedProposal.client}</p>
-              <p><strong>Date:</strong> {selectedProposal.date}</p>
+              <h4>{selectedProposal.proposal_description}</h4>
+              <p><strong>Client ID:</strong> {selectedProposal.client_id}</p>
+              <p><strong>Date:</strong> {selectedProposal.proposal_date}</p>
               <p><strong>Status:</strong> {getStatusBadge(selectedProposal.status)}</p>
               <h5 className="mt-4">Comments:</h5>
-              {selectedProposal.comments.map((comment, index) => (
+              {selectedProposal.comments && selectedProposal.comments.map((comment, index) => (
                 <div key={index} className="mb-2 p-2 bg-light rounded">
                   <CIcon icon={cilClock} className="me-2" />
                   {comment}
