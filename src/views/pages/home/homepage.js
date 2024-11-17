@@ -20,6 +20,7 @@ import {
 import CIcon from '@coreui/icons-react'
 
 import { cil4k, cilApple, cilHappy, cilPaintBucket, cilPencil } from '@coreui/icons'
+import ContactForm from '../../forms/contact/contact-form'
 
 const Homepage = () => {
   return (
@@ -133,50 +134,7 @@ const Homepage = () => {
         </section>
 
         <section id="contacto" className="py-5">
-          <CContainer>
-            <h2 className="text-center mb-5">Contáctanos</h2>
-            <CRow>
-              <CCol lg={6} className="mx-auto">
-                <CForm>
-                  <CFormInput
-                    type="text"
-                    id="nombre"
-                    label="Nombre"
-                    placeholder="Tu nombre"
-                    text="Ingresa tu nombre completo"
-                    className="mb-3"
-                  />
-                  <CFormInput
-                    type="email"
-                    id="email"
-                    label="Correo Electrónico"
-                    placeholder="tucorreo@ejemplo.com"
-                    text="Nunca compartiremos tu correo con nadie más."
-                    className="mb-3"
-                  />
-                  <CFormInput
-                    type="tel"
-                    id="telefono"
-                    label="Teléfono"
-                    placeholder="Tu número de teléfono"
-                    className="mb-3"
-                  />
-                  <CFormTextarea
-                    id="mensaje"
-                    label="Mensaje"
-                    rows={3}
-                    text="Cuéntanos sobre tu proyecto de remodelación"
-                    className="mb-3"
-                  ></CFormTextarea>
-                  <div className="d-grid">
-                    <CButton color="primary" type="submit">
-                      Enviar Mensaje
-                    </CButton>
-                  </div>
-                </CForm>
-              </CCol>
-            </CRow>
-          </CContainer>
+         <ContactForm></ContactForm>
         </section>
       </main>
     </div>
