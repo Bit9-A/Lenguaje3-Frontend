@@ -23,7 +23,7 @@ import {
   CModalFooter,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilSearch, cilCheckCircle, cilXCircle,  } from '@coreui/icons'
+import { cilSearch, cilCheckCircle, cilXCircle, cilCommentSquare } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
 
 const ReceivedProposals = () => {
@@ -157,7 +157,7 @@ const ReceivedProposals = () => {
                         size="sm"
                         onClick={() => handleViewProposal(proposal)}
                       >
-                        <CIcon icon={""} /> View
+                        <CIcon icon={cilCommentSquare} /> View
                       </CButton>
                     </CTableDataCell>
                   </CTableRow>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
 import {
   CCard,
   CCardBody,
@@ -25,11 +25,122 @@ import {
   CFormTextarea,
   CFormCheck,
   CForm,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilSearch, cilPlus, cilPhone, cilEnvelopeClosed, cilPeople, cilNotes } from '@coreui/icons'
+} from '@coreui/react';
+import CIcon from '@coreui/icons-react';
+import { cilSearch, cilPlus, cilPhone, cilEnvelopeClosed, cilPeople, cilNotes, cilPencil, cilTrash } from '@coreui/icons';
+import { helpHttp } from '../../../helpers/helpHTTP';
 
 const ClientInteractions = () => {
+  const [interactions, setInteractions] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [formData, setFormData] = useState({
+    client_id: '',
+    employee_id: '',
+    type: 'Call',
+    interaction_date: '',
+    notes: '',
+    follow_up: false,
+  });
+
+  const api = helpHttp();
+  const baseUrl = 'http://localhost:5000';
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const interactionsRes = await api.get(`${baseUrl}/client_interactions`);
+    const clientsRes = await api.get(`${baseUrl}/clients`);
+    const employeesRes = await api.get(`${baseUrl}/employees`);
+    if (!interactionsRes.err && !clientsRes.err && !employeesRes.err) {
+      setInteractions(interactionsRes);
+      setClients(clientsRes);
+      setEmployees(employeesRes);
+    } else {
+      console.error('Error fetching data');
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await api.put(`${baseUrl}/client_interactions/${editingId}`, { body: formData });
+      } else {
+        await api.post(`${baseUrl}/client_interactions`, { body: formData });
+      }
+      setShowModal(false);
+      setEditingId(null);
+      resetForm();
+      fetchData();
+    } catch (error) {
+      console.error('Error saving interaction:', error);
+    }
+  };
+
+  const handleEdit = (interaction) => {
+    setFormData({
+      client_id: interaction.client_id,
+      employee_id: interaction.employee_id,
+      type: interaction.type,
+      interaction_date: interaction.interaction_date,
+      notes: interaction.notes,
+      follow_up: interaction.follow_up,
+    });
+    setEditingId(interaction.id);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this interaction?')) {
+      try {
+        await api.del(`${baseUrl}/client_interactions/${id}`);
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting interaction:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      client_id: '',
+      employee_id: '',
+      type: 'Call',
+      interaction_date: '',
+      notes: '',
+      follow_up: false,
+    });
+  };
+
+  const getClientName = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client';
+  };
+
+  const getEmployeeName = (employeeId) => {
+    const employee = employees.find(e => e.id === employeeId);
+    return employee ? `${employee.firstname} ${employee.lastname}` : 'Unknown Employee';
+  };
+
+  const filteredInteractions = interactions.filter(interaction => 
+    (getClientName(interaction.client_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+     getEmployeeName(interaction.employee_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+     interaction.notes.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (typeFilter === 'All' || interaction.type === typeFilter)
+  );
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -47,11 +158,16 @@ const ClientInteractions = () => {
                   <CFormInput
                     placeholder="Search interactions..."
                     className="border-start-0"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </CInputGroup>
               </CCol>
               <CCol md={2}>
-                <CFormSelect>
+                <CFormSelect
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                >
                   <option value="All">All Types</option>
                   <option value="Call">Call</option>
                   <option value="Email">Email</option>
@@ -61,12 +177,15 @@ const ClientInteractions = () => {
               <CCol md={4}>
                 <CFormInput
                   type="date"
-                  placeholder="Select date range"
+                  name="interaction_date"
+                  value={formData.interaction_date}
+                  onChange={handleInputChange}
+                  placeholder="Select date"
                   className="form-control"
                 />
               </CCol>
               <CCol md={3} className="text-end">
-                <CButton color="primary">
+                <CButton color="primary" onClick={() => {resetForm(); setShowModal(true);}}>
                   <CIcon icon={cilPlus} className="me-2" />
                   New Interaction
                 </CButton>
@@ -76,6 +195,7 @@ const ClientInteractions = () => {
               <CTableHead>
                 <CTableRow className="bg-light">
                   <CTableHeaderCell>Client</CTableHeaderCell>
+                  <CTableHeaderCell>Employee</CTableHeaderCell>
                   <CTableHeaderCell>Type</CTableHeaderCell>
                   <CTableHeaderCell>Date</CTableHeaderCell>
                   <CTableHeaderCell>Notes</CTableHeaderCell>
@@ -84,45 +204,81 @@ const ClientInteractions = () => {
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-
-                <CTableRow>
-                  <CTableDataCell>John Doe</CTableDataCell>
-                  <CTableDataCell>
-                    <CIcon icon={cilPhone} className="me-2" />
-                    Call
-                  </CTableDataCell>
-                  <CTableDataCell>2023-05-15</CTableDataCell>
-                  <CTableDataCell>Discussed kitchen remodeling options...</CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CBadge color="warning" shape="rounded-pill">Follow-up</CBadge>
-                  </CTableDataCell>
-                  <CTableDataCell className="text-center">
-                    <CButton color="info" variant="ghost" size="sm">
-                      <CIcon icon={cilNotes} /> View Details
-                    </CButton>
-                  </CTableDataCell>
-                </CTableRow>
-
+                {filteredInteractions.map((interaction) => (
+                  <CTableRow key={interaction.id}>
+                    <CTableDataCell>{getClientName(interaction.client_id)}</CTableDataCell>
+                    <CTableDataCell>{getEmployeeName(interaction.employee_id)}</CTableDataCell>
+                    <CTableDataCell>
+                      <CIcon icon={cilPhone} className="me-2" />
+                      {interaction.type}
+                    </CTableDataCell>
+                    <CTableDataCell>{interaction.interaction_date}</CTableDataCell>
+                    <CTableDataCell>{interaction.notes}</CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      <CBadge color={interaction.follow_up ? "warning" : "success"} shape="rounded-pill">
+                        {interaction.follow_up ? "Follow-up" : "No Follow-up"}
+                      </CBadge>
+                    </CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      <CButton color="info" variant="ghost" size="sm" className="me-2" onClick={() => handleEdit(interaction)}>
+                        <CIcon icon={cilPencil} /> Edit
+                      </CButton>
+                      <CButton color="danger" variant="ghost" size="sm" onClick={() => handleDelete(interaction.id)}>
+                        <CIcon icon={cilTrash} /> Delete
+                      </CButton>
+                    </CTableDataCell>
+                  </CTableRow>
+                ))}
               </CTableBody>
             </CTable>
           </CCardBody>
         </CCard>
       </CCol>
 
-      <CModal visible={false}>
+      <CModal visible={showModal} onClose={() => {setShowModal(false); setEditingId(null); resetForm();}}>
         <CModalHeader closeButton>
-          <CModalTitle>New Interaction</CModalTitle>
+          <CModalTitle>{editingId ? 'Edit Interaction' : 'New Interaction'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <CForm>
+          <CForm onSubmit={handleSubmit}>
             <div className="mb-3">
-              <CFormInput
+              <CFormSelect
                 label="Client"
-              />
+                name="client_id"
+                value={formData.client_id}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a client</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {`${client.firstname} ${client.lastname}`}
+                  </option>
+                ))}
+              </CFormSelect>
             </div>
             <div className="mb-3">
-              < CFormSelect
+              <CFormSelect
+                label="Employee"
+                name="employee_id"
+                value={formData.employee_id}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select an employee</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {`${employee.firstname} ${employee.lastname}`}
+                  </option>
+                ))}
+              </CFormSelect>
+            </div>
+            <div className="mb-3">
+              <CFormSelect
                 label="Type"
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
               >
                 <option value="Call">Call</option>
                 <option value="Email">Email</option>
@@ -133,32 +289,43 @@ const ClientInteractions = () => {
               <CFormInput
                 type="date"
                 label="Date"
+                name="interaction_date"
+                value={formData.interaction_date}
+                onChange={handleInputChange}
+                required
               />
             </div>
             <div className="mb-3">
               <CFormTextarea
                 label="Notes"
+                name="notes"
                 rows={3}
-              ></CFormTextarea>
+                value={formData.notes}
+                onChange={handleInputChange}
+                required
+              />
             </div>
             <div className="mb-3">
               <CFormCheck
                 label="Requires Follow-up"
+                name="follow_up"
+                checked={formData.follow_up}
+                onChange={handleInputChange}
               />
             </div>
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary">
+          <CButton color="secondary" onClick={() => {setShowModal(false); setEditingId(null); resetForm();}}>
             Cancel
           </CButton>
-          <CButton color="primary">
-            Save
+          <CButton color="primary" onClick={handleSubmit}>
+            {editingId ? 'Update' : 'Save'}
           </CButton>
         </CModalFooter>
       </CModal>
     </CRow>
-  )
-}
+  );
+};
 
 export default ClientInteractions;

@@ -28,7 +28,6 @@ import {
   CModalFooter,
   CForm,
   CFormLabel,
-  CFormSelect,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -78,16 +77,16 @@ const ClientList = () => {
   }, [])
 
   const getClientStatus = (clientId) => {
+    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId)
+    const acceptedProposals = clientProposals.filter(proposal => proposal.status === 'Accepted')
     const activeProjects = projects.filter(project => 
-      project.proposal_id === clientId && project.status === 'In Progress'
-    )
-    const pendingProposals = proposals.filter(proposal => 
-      proposal.client_id === clientId && proposal.status === 'Pending'
+      acceptedProposals.some(proposal => proposal.id === project.proposal_id) && 
+      project.status === 'In Progress'
     )
 
     if (activeProjects.length > 0) {
       return 'Activo'
-    } else if (pendingProposals.length > 0) {
+    } else if (clientProposals.length > 0) {
       return 'Potencial'
     } else {
       return 'Inactivo'
@@ -95,7 +94,21 @@ const ClientList = () => {
   }
 
   const getClientProjects = (clientId) => {
-    return projects.filter(project => project.proposal_id === clientId).length
+    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId)
+    const clientProjects = projects.filter(project => 
+      clientProposals.some(proposal => proposal.id === project.proposal_id)
+    )
+    const completed = clientProjects.filter(project => project.status === 'Completed').length
+    const inProgress = clientProjects.filter(project => project.status === 'In Progress').length
+    return { completed, inProgress }
+  }
+
+  const getClientProposals = (clientId) => {
+    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId)
+    const accepted = clientProposals.filter(proposal => proposal.status === 'Accepted').length
+    const rejected = clientProposals.filter(proposal => proposal.status === 'Rejected').length
+    const pending = clientProposals.filter(proposal => proposal.status === 'Pending').length
+    return { accepted, rejected, pending }
   }
 
   const handleInputChange = (e) => {
@@ -217,63 +230,72 @@ const ClientList = () => {
                   <CTableHeaderCell>Contacto</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Estado</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Proyectos</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Propuestas</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Acciones</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {filteredClients.map((client) => (
-                  <CTableRow key={client.id} className="align-middle">
-                    <CTableDataCell>
-                      <div className="d-flex align-items-center">
-                        <CAvatar
-                          color={getClientStatus(client.id) === 'Activo' ? 'primary' : 'secondary'}
-                          size="md"
-                          className="me-3"
-                        >
-                          {client.firstname.charAt(0)}
-                        </CAvatar>
-                        <div>
-                          <div className="fw-semibold">{`${client.firstname} ${client.lastname}`}</div>
-                          <div className="small text-medium-emphasis">
-                            <CIcon icon={cilBriefcase} className="me-1" />
-                            {getClientProjects(client.id)} {getClientProjects(client.id) === 1 ? 'proyecto' : 'proyectos'}
+                {filteredClients.map((client) => {
+                  const clientProjects = getClientProjects(client.id)
+                  const clientProposals = getClientProposals(client.id)
+                  return (
+                    <CTableRow key={client.id} className="align-middle">
+                      <CTableDataCell>
+                        <div className="d-flex align-items-center">
+                          <CAvatar
+                            color={getClientStatus(client.id) === 'Activo' ? 'primary' : 'secondary'}
+                            size="md"
+                            className="me-3"
+                          >
+                            {client.firstname.charAt(0)}
+                          </CAvatar>
+                          <div>
+                            <div className="fw-semibold">{`${client.firstname} ${client.lastname}`}</div>
+                            <div className="small text-medium-emphasis">
+                              <CIcon icon={cilBriefcase} className="me-1" />
+                              {clientProjects.completed + clientProjects.inProgress} {clientProjects.completed + clientProjects.inProgress === 1 ? 'proyecto' : 'proyectos'}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <div>
-                        <CIcon icon={cilEnvelopeClosed} className="me-2 text-muted" />
-                        {client.email}
-                      </div>
-                      <div className="mt-1">
-                        <CIcon icon={cilPhone} className="me-2 text-muted" />
-                        {client.phone}
-                      </div>
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      {getStatusBadge(getClientStatus(client.id))}
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CBadge color="info" shape="rounded-pill" className="px-3">
-                        {getClientProjects(client.id)}
-                      </CBadge>
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CDropdown alignment="end">
-                        <CDropdownToggle color="light" caret={false} className="p-0">
-                          <CIcon icon={cilOptions} />
-                        </CDropdownToggle>
-                        <CDropdownMenu>
-                          <CDropdownItem onClick={() => openModal(client)}>Editar</CDropdownItem>
-                          <CDropdownItem onClick={() => deleteClient(client.id)} className="text-danger">
-                            Eliminar
-                          </CDropdownItem>
-                        </CDropdownMenu>
-                      </CDropdown>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
+                      </CTableDataCell>
+                      <CTableDataCell>
+                        <div>
+                          <CIcon icon={cilEnvelopeClosed} className="me-2 text-muted" />
+                          {client.email}
+                        </div>
+                        <div className="mt-1">
+                          <CIcon icon={cilPhone} className="me-2 text-muted" />
+                          {client.phone}
+                        </div>
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        {getStatusBadge(getClientStatus(client.id))}
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        <div>Completados: {clientProjects.completed}</div>
+                        <div>En Progreso: {clientProjects.inProgress}</div>
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        <div>Aceptadas: {clientProposals.accepted}</div>
+                        <div>Rechazadas: {clientProposals.rejected}</div>
+                        <div>Pendientes: {clientProposals.pending}</div>
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        <CDropdown alignment="end">
+                          <CDropdownToggle color="light" caret={false} className="p-0">
+                            <CIcon icon={cilOptions} />
+                          </CDropdownToggle>
+                          <CDropdownMenu>
+                            <CDropdownItem onClick={() => openModal(client)}>Editar</CDropdownItem>
+                            <CDropdownItem onClick={() => deleteClient(client.id)} className="text-danger">
+                              Eliminar
+                            </CDropdownItem>
+                          </CDropdownMenu>
+                        </CDropdown>
+                      </CTableDataCell>
+                    </CTableRow>
+                  )
+                })}
               </CTableBody>
             </CTable>
           </CCardBody>

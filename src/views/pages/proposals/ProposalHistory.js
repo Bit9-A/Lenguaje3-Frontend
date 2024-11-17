@@ -25,11 +25,12 @@ import {
   CFormTextarea,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilSearch, cilCommentSquare, cilClock } from '@coreui/icons'
+import { cilSearch, cilCommentSquare, cilClock, cilTrash } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
 
 const ProposalHistory = () => {
   const [proposals, setProposals] = useState([])
+  const [clients, setClients] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProposal, setSelectedProposal] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -40,6 +41,7 @@ const ProposalHistory = () => {
 
   useEffect(() => {
     fetchProposals()
+    fetchClients()
   }, [])
 
   const fetchProposals = async () => {
@@ -52,6 +54,20 @@ const ProposalHistory = () => {
     } else {
       console.error('Error fetching proposals:', response.err)
     }
+  }
+
+  const fetchClients = async () => {
+    const response = await api.get(`${baseUrl}/clients`)
+    if (!response.err) {
+      setClients(response)
+    } else {
+      console.error('Error fetching clients:', response.err)
+    }
+  }
+
+  const getClientName = (clientId) => {
+    const client = clients.find(c => c.id === clientId)
+    return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client'
   }
 
   const getStatusBadge = (status) => {
@@ -67,7 +83,7 @@ const ProposalHistory = () => {
 
   const filteredProposals = proposals.filter(proposal =>
     proposal.proposal_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    proposal.client_id.toString().includes(searchTerm.toLowerCase())
+    getClientName(proposal.client_id).toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleViewDetails = (proposal) => {
@@ -91,6 +107,17 @@ const ProposalHistory = () => {
         setNewComment('')
       } else {
         console.error('Error adding comment:', response.err)
+      }
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this proposal?')) {
+      const response = await api.del(`${baseUrl}/client_proposals/${id}`)
+      if (!response.err) {
+        setProposals(proposals.filter(p => p.id !== id))
+      } else {
+        console.error('Error deleting proposal:', response.err)
       }
     }
   }
@@ -121,7 +148,7 @@ const ProposalHistory = () => {
             <CTable align="middle" className="mb-0 border" hover responsive>
               <CTableHead>
                 <CTableRow className="bg-light">
-                  <CTableHeaderCell>Client ID</CTableHeaderCell>
+                  <CTableHeaderCell>Client Name</CTableHeaderCell>
                   <CTableHeaderCell>Project Description</CTableHeaderCell>
                   <CTableHeaderCell>Date</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
@@ -131,7 +158,7 @@ const ProposalHistory = () => {
               <CTableBody>
                 {filteredProposals.map((proposal) => (
                   <CTableRow key={proposal.id}>
-                    <CTableDataCell>{proposal.client_id}</CTableDataCell>
+                    <CTableDataCell>{getClientName(proposal.client_id)}</CTableDataCell>
                     <CTableDataCell>{proposal.proposal_description}</CTableDataCell>
                     <CTableDataCell>{proposal.proposal_date}</CTableDataCell>
                     <CTableDataCell className="text-center">
@@ -143,8 +170,17 @@ const ProposalHistory = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleViewDetails(proposal)}
+                        className="me-2"
                       >
                         <CIcon icon={cilCommentSquare} /> View History
+                      </CButton>
+                      <CButton 
+                        color="danger" 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDelete(proposal.id)}
+                      >
+                        <CIcon icon={cilTrash} /> Delete
                       </CButton>
                     </CTableDataCell>
                   </CTableRow>
@@ -163,7 +199,7 @@ const ProposalHistory = () => {
           {selectedProposal && (
             <>
               <h4>{selectedProposal.proposal_description}</h4>
-              <p><strong>Client ID:</strong> {selectedProposal.client_id}</p>
+              <p><strong>Client:</strong> {getClientName(selectedProposal.client_id)}</p>
               <p><strong>Date:</strong> {selectedProposal.proposal_date}</p>
               <p><strong>Status:</strong> {getStatusBadge(selectedProposal.status)}</p>
               <h5 className="mt-4">Comments:</h5>
