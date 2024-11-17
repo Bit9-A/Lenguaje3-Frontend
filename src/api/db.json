@@ -85,7 +85,8 @@
       "address": "456 Elm St",
       "birthdate": "1985-05-15",
       "gender": "Female",
-      "national_id": "CD789012"
+      "national_id": "CD789012",
+      "status": "Activo"
     },
     {
       "id": "3",
@@ -207,7 +208,7 @@
       "proposal_description": "Bathroom Remodel",
       "proposal_date": "2023-02-15",
       "budget_type_id": "1",
-      "status": "Pending"
+      "status": "Accepted"
     },
     {
       "id": "3",
@@ -241,7 +242,7 @@
       "proposal_description": "Hola Soy Gohan",
       "proposal_date": "2024-11-17",
       "budget_type_id": "2",
-      "status": "Accepted",
+      "status": "Pending",
       "comments": []
     }
   ],
@@ -282,8 +283,18 @@
       "description": "Hola Soy Goku",
       "start_date": "2024-11-16",
       "end_date": "2024-11-16",
-      "status": "In Progress",
+      "status": "Completed",
       "proposal_id": "4feb",
+      "is_paid": false
+    },
+    {
+      "id": "fcd9",
+      "name": "Bathroom Remodel",
+      "description": "Bathroom Remodel",
+      "start_date": "2024-11-17",
+      "end_date": null,
+      "status": "Planning",
+      "proposal_id": "2",
       "is_paid": false
     }
   ],
@@ -523,6 +534,15 @@
       "type": "Email",
       "interaction_date": "2024-11-09",
       "notes": "dasd",
+      "follow_up": false
+    },
+    {
+      "id": "ceb0",
+      "client_id": "5e84",
+      "employee_id": "2",
+      "type": "Email",
+      "interaction_date": "2024-11-16",
+      "notes": "adada",
       "follow_up": false
     }
   ],

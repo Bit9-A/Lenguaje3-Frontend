@@ -28,6 +28,7 @@ import {
   CModalFooter,
   CForm,
   CFormLabel,
+  CTooltip,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import {
@@ -36,6 +37,10 @@ import {
   cilEnvelopeClosed,
   cilPhone,
   cilBriefcase,
+  cilCheckCircle,
+  cilXCircle,
+  cilClock,
+  cilFingerprint,
 } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
 
@@ -53,6 +58,7 @@ const ClientList = () => {
     email: '',
     phone: '',
     address: '',
+    national_id: '',
   })
 
   const api = helpHttp()
@@ -79,12 +85,8 @@ const ClientList = () => {
   const getClientStatus = (clientId) => {
     const clientProposals = proposals.filter(proposal => proposal.client_id === clientId)
     const acceptedProposals = clientProposals.filter(proposal => proposal.status === 'Accepted')
-    const activeProjects = projects.filter(project => 
-      acceptedProposals.some(proposal => proposal.id === project.proposal_id) && 
-      project.status === 'In Progress'
-    )
-
-    if (activeProjects.length > 0) {
+    
+    if (acceptedProposals.length > 0) {
       return 'Activo'
     } else if (clientProposals.length > 0) {
       return 'Potencial'
@@ -231,6 +233,7 @@ const ClientList = () => {
                   <CTableHeaderCell className="text-center">Estado</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Proyectos</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Propuestas</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">ID Nacional</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Acciones</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
@@ -238,12 +241,13 @@ const ClientList = () => {
                 {filteredClients.map((client) => {
                   const clientProjects = getClientProjects(client.id)
                   const clientProposals = getClientProposals(client.id)
+                  const clientStatus = getClientStatus(client.id)
                   return (
                     <CTableRow key={client.id} className="align-middle">
                       <CTableDataCell>
                         <div className="d-flex align-items-center">
                           <CAvatar
-                            color={getClientStatus(client.id) === 'Activo' ? 'primary' : 'secondary'}
+                            color={clientStatus === 'Activo' ? 'primary' : 'secondary'}
                             size="md"
                             className="me-3"
                           >
@@ -269,16 +273,53 @@ const ClientList = () => {
                         </div>
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
-                        {getStatusBadge(getClientStatus(client.id))}
+                        {getStatusBadge(clientStatus)}
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
-                        <div>Completados: {clientProjects.completed}</div>
-                        <div>En Progreso: {clientProjects.inProgress}</div>
+                        <div className="d-flex justify-content-center align-items-center">
+                          <CTooltip content="Completados">
+                            <div className="d-flex align-items-center me-3">
+                              <CIcon icon={cilCheckCircle} className="text-success me-2" />
+                              <span className="fw-semibold">{clientProjects.completed}</span>
+                            </div>
+                          </CTooltip>
+                          <CTooltip content="En Progreso">
+                            <div className="d-flex align-items-center">
+                              <CIcon icon={cilClock} className="text-warning me-2" />
+                              <span className="fw-semibold">{clientProjects.inProgress}</span>
+                            </div>
+                          </CTooltip>
+                        </div>
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
-                        <div>Aceptadas: {clientProposals.accepted}</div>
-                        <div>Rechazadas: {clientProposals.rejected}</div>
-                        <div>Pendientes: {clientProposals.pending}</div>
+                        <div className="d-flex justify-content-center align-items-center">
+                          <CTooltip content="Aceptadas">
+                            <div className="d-flex align-items-center me-3">
+                              <CIcon icon={cilCheckCircle} className="text-success me-2" />
+                              <span className="fw-semibold">{clientProposals.accepted}</span>
+                            </div>
+                          </CTooltip>
+                          <CTooltip content="Rechazadas">
+                            <div className="d-flex align-items-center me-3">
+                              <CIcon icon={cilXCircle} className="text-danger me-2" />
+                              <span className="fw-semibold">{clientProposals.rejected}</span>
+                            </div>
+                          </CTooltip>
+                          <CTooltip content="Pendientes">
+                            <div className="d-flex align-items-center">
+                              <CIcon icon={cilClock} className="text-warning me-2" />
+                              <span className="fw-semibold">{clientProposals.pending}</span>
+                            </div>
+                          </CTooltip>
+                        </div>
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">
+                        <CTooltip content="ID Nacional">
+                          <div className="d-flex justify-content-center align-items-center">
+                            <CIcon icon={cilFingerprint} className="text-primary me-2" />
+                            <span className="fw-semibold">{client.national_id}</span>
+                          </div>
+                        </CTooltip>
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
                         <CDropdown alignment="end">
@@ -361,6 +402,16 @@ const ClientList = () => {
                 id="address"
                 name="address"
                 value={formData.address}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="national_id">ID Nacional</CFormLabel>
+              <CFormInput
+                id="national_id"
+                name="national_id"
+                value={formData.national_id}
                 onChange={handleInputChange}
                 required
               />

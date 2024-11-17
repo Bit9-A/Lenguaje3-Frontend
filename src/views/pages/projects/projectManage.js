@@ -26,9 +26,10 @@ import {
   CFormInput,
   CFormSelect,
   CFormTextarea,
+  CAvatar,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilOptions, cilPlus, cilPencil, cilTrash, cilList } from '@coreui/icons'
+import { cilOptions, cilPlus, cilPencil, cilTrash, cilList, cilUser, cilCalendar, cilDollar } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
 
 const ProjectManagement = () => {
@@ -36,6 +37,7 @@ const ProjectManagement = () => {
   const [proposals, setProposals] = useState([])
   const [services, setServices] = useState([])
   const [projectServices, setProjectServices] = useState([])
+  const [clients, setClients] = useState([])
   const [showServicesModal, setShowServicesModal] = useState(false)
   const [showNewProjectModal, setShowNewProjectModal] = useState(false)
   const [showEditProjectModal, setShowEditProjectModal] = useState(false)
@@ -52,6 +54,7 @@ const ProjectManagement = () => {
     fetchProposals()
     fetchServices()
     fetchProjectServices()
+    fetchClients()
   }, [])
 
   const fetchProjects = async () => {
@@ -87,6 +90,15 @@ const ProjectManagement = () => {
       setProjectServices(response)
     } else {
       console.error('Error fetching project services:', response.err)
+    }
+  }
+
+  const fetchClients = async () => {
+    const response = await api.get(`${baseUrl}/clients`)
+    if (!response.err) {
+      setClients(response)
+    } else {
+      console.error('Error fetching clients:', response.err)
     }
   }
 
@@ -166,12 +178,19 @@ const ProjectManagement = () => {
     }
     const response = await api.post(`${baseUrl}/projects`, { body: newProject })
     if (!response.err) {
-      
       const updatedProposal = { ...proposal, status: 'Accepted' }
       await api.put(`${baseUrl}/client_proposals/${proposal.id}`, { body: updatedProposal })
       
+      // Update client status
+      const client = clients.find(c => c.id === proposal.client_id)
+      if (client) {
+        const updatedClient = { ...client, status: 'Activo' }
+        await api.put(`${baseUrl}/clients/${client.id}`, { body: updatedClient })
+      }
+      
       fetchProjects()
       fetchProposals()
+      fetchClients()
       closeNewProjectModal()
     } else {
       console.error('Error creating new project:', response.err)
@@ -225,6 +244,11 @@ const ProjectManagement = () => {
   const getServiceName = (serviceId) => {
     const service = services.find(s => s.id === serviceId.toString())
     return service ? service.name : 'Unknown Service'
+  }
+
+  const getClientName = (clientId) => {
+    const client = clients.find(c => c.id === clientId)
+    return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client'
   }
 
   return (
@@ -377,10 +401,25 @@ const ProjectManagement = () => {
           {proposals.map((proposal) => (
             <CCard key={proposal.id} className="mb-3">
               <CCardBody>
-                <h6>{proposal.proposal_description}</h6>
-                <p><strong>Client ID:</strong> {proposal.client_id}</p>
-                <p><strong>Date:</strong> {proposal.proposal_date}</p>
-                <p><strong>Budget Type:</strong> {proposal.budget_type_id}</p>
+                <div className="d-flex align-items-center mb-3">
+                  <CAvatar color="primary" size="md" className="me-3">
+                    {getClientName(proposal.client_id).charAt(0)}
+                  </CAvatar>
+                  <div>
+                    <h6 className="mb-0">{proposal.proposal_description}</h6>
+                    <small className="text-medium-emphasis">{getClientName(proposal.client_id)}</small>
+                  </div>
+                </div>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <CIcon icon={cilCalendar} className="me-2 text-muted" />
+                    <span>{proposal.proposal_date}</span>
+                  </div>
+                  <div>
+                    <CIcon icon={cilDollar} className="me-2 text-muted" />
+                    <span>Budget Type: {proposal.budget_type_id}</span>
+                  </div>
+                </div>
                 <CButton color="primary" onClick={() => createNewProject(proposal)}>
                   Accept and Create Project
                 </CButton>

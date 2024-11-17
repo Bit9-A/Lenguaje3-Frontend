@@ -1,54 +1,58 @@
+import React from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   CHeader,
-  CNavbar,
   CContainer,
+  CNavbar,
   CNavbarBrand,
   CNavbarNav,
   CNavItem,
   CNavLink,
   CButton,
-  CCard,
-  CCardBody,
-  CCardTitle,
-  CCardText,
-  CForm,
-  CFormInput,
-  CFormTextarea,
-  CRow,
-  CCol,
-  CHeaderNav,
   CImage,
-  CLink,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cil4k } from '@coreui/icons'
+import { cilUser } from '@coreui/icons'
 
 const HomeHeader = () => {
   return (
-    <CHeader className="homeheader">
-      <CNavbar expand="lg"  className="container-fluid ">
-        <CContainer>
-          <CNavbarBrand href="/">Empresa</CNavbarBrand>
-          <CLink href="/">
-            <CImage src="logo.ico" width={50} height={50}></CImage>
-          </CLink>
-          <CNavbarNav className="d-none d-lg-flex">
+    <CHeader className="bg-light border-bottom">
+      <CContainer fluid>
+        <CNavbar expand="lg" colorScheme="light" className="px-3">
+          <CNavbarBrand href="/" className="d-flex align-items-center">
+            <CImage src="/logo.ico" width={40} height={40} className="me-2" alt="Logo" />
+            <span className="fw-bold ">Empresa</span>
+          </CNavbarBrand>
+          <CNavbarNav className="d-none navlink-home d-lg-flex me-auto">
             <CNavItem>
-              <CNavLink className="navlink-home" href="#">Inicio</CNavLink>
+              <CNavLink href="#" className="px-3 navlink-home  transition-colors">
+                Inicio
+              </CNavLink>
             </CNavItem>
             <CNavItem>
-              <CNavLink className="navlink-home" href="#services">Servicios</CNavLink>
+              <CNavLink href="#services" className="px-3 navlink-home  transition-colors">
+                Servicios
+              </CNavLink>
             </CNavItem>
             <CNavItem>
-              <CNavLink className="navlink-home" href="#projects">Proyectos</CNavLink>
+              <CNavLink href="#projects" className="px-3 navlink-home transition-colors">
+                Proyectos
+              </CNavLink>
             </CNavItem>
             <CNavItem>
-              <CNavLink className="navlink-home" href="#contact">Contacto</CNavLink>
+              <CNavLink href="#contact" className="px-3 navlink-home transition-colors">
+                Contacto
+              </CNavLink>
             </CNavItem>
           </CNavbarNav>
-        </CContainer>
-      </CNavbar>
+          <NavLink to="/login" className="text-decoration-none">
+            <CButton variant="outline" className="d-flex align-items-center btn-primary">
+              <CIcon icon={cilUser} size="sm" className="me-2" />
+              Iniciar Sesión
+            </CButton>
+          </NavLink>
+        </CNavbar>
+      </CContainer>
     </CHeader>
   )
 }
