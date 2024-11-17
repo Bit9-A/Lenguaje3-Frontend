@@ -1,15 +1,12 @@
-import React from 'react'
-import classNames from 'classnames'
+import React, { useState, useEffect } from 'react'
 import {
   CAvatar,
   CButton,
-  CButtonGroup,
   CCard,
   CCardBody,
   CCardFooter,
   CCardHeader,
   CCol,
-  CProgress,
   CRow,
   CTable,
   CTableBody,
@@ -20,36 +17,65 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPeople, cilCloudDownload, cilUser } from '@coreui/icons'
+import { helpHttp } from '../../helpers/helpHTTP'
 
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
 
-const Dashboard = () => {
-  const metrics = {
-    activeProjects: 15,
-    totalClients: 120,
-    totalRevenue: '$50,000',
-    performanceStats: [
-      { title: 'Completed Projects', value: 100 },
-      { title: 'Satisfied Clients', value: 95 },
-      { title: 'Current Projects', value: 15 },
-    ],
-  }
+const api = helpHttp()
+const baseUrl = 'http://localhost:5000'
 
-  const clients = [
-    {
-      avatar: 'src/assets/images/avatars/1.jpg',
-      name: 'Yiorgos Avraamu',
-      country: 'USA',
-      lastInteraction: '1 day ago',
-    },
-    {
-      avatar: 'src/assets/images/avatars/2.jpg',
-      name: 'Avram Tarasios',
-      country: 'Brazil',
-      lastInteraction: '3 days ago',
-    },
-  ]
+const Dashboard = () => {
+  const [metrics, setMetrics] = useState({
+    activeProjects: 0,
+    totalClients: 0,
+    totalRevenue: 0,
+    performanceStats: [
+      { title: 'Completed Projects', value: 0 },
+      { title: 'Satisfied Clients', value: 0 },
+      { title: 'Current Projects', value: 0 },
+    ],
+  })
+
+  const [clients, setClients] = useState([])
+  const [projects, setProjects] = useState([])
+  const [proposals, setProposals] = useState([])
+  const [payments, setPayments] = useState([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const clientsRes = await api.get(`${baseUrl}/clients`)
+      const projectsRes = await api.get(`${baseUrl}/projects`)
+      const proposalsRes = await api.get(`${baseUrl}/client_proposals`)
+      const paymentsRes = await api.get(`${baseUrl}/payments`)
+
+      if (!clientsRes.err && !projectsRes.err && !proposalsRes.err && !paymentsRes.err) {
+        setClients(clientsRes)
+        setProjects(projectsRes)
+        setProposals(proposalsRes)
+        setPayments(paymentsRes)
+
+        const activeProjects = projectsRes.filter(project => project.status === 'In Progress').length
+        const completedProjects = projectsRes.filter(project => project.status === 'Completed').length
+        const totalRevenue = paymentsRes.reduce((sum, payment) => sum + payment.amount, 0)
+
+        setMetrics({
+          activeProjects,
+          totalClients: clientsRes.length,
+          totalRevenue: `$${totalRevenue.toLocaleString()}`,
+          performanceStats: [
+            { title: 'Completed Projects', value: completedProjects },
+            { title: 'Satisfied Clients', value: clientsRes.length }, // Assuming all clients are satisfied
+            { title: 'Current Projects', value: activeProjects },
+          ],
+        })
+      } else {
+        console.error('Error fetching data')
+      }
+    }
+
+    fetchData()
+  }, [])
 
   return (
     <>
@@ -98,27 +124,23 @@ const Dashboard = () => {
                 </CTableHeaderCell>
                 <CTableHeaderCell className="bg-body-tertiary">Client</CTableHeaderCell>
                 <CTableHeaderCell className="bg-body-tertiary text-center">
-                  Country
+                  Email
                 </CTableHeaderCell>
-                <CTableHeaderCell className="bg-body-tertiary">Last Interaction</CTableHeaderCell>
+                <CTableHeaderCell className="bg-body-tertiary">Phone</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>
-              {clients.map((client, index) => (
-                <CTableRow key={index}>
+              {clients.slice(0, 5).map((client, index) => (
+                <CTableRow key={client.id}>
                   <CTableDataCell className="text-center">
-                    <CAvatar size="md" src={client.avatar} />
+                    <CAvatar size="md" src={`https://ui-avatars.com/api/?name=${client.firstname}+${client.lastname}`} />
                   </CTableDataCell>
                   <CTableDataCell>
-                    <div>{client.name}</div>
-                    <div className="small text-body-secondary text-nowrap">
-                      Last interaction: {client.lastInteraction}
-                    </div>
+                    <div>{`${client.firstname} ${client.lastname}`}</div>
                   </CTableDataCell>
-                  <CTableDataCell className="text-center">{client.country}</CTableDataCell>
+                  <CTableDataCell className="text-center">{client.email}</CTableDataCell>
                   <CTableDataCell>
-                    <div className="small text-body-secondary text-nowrap">Details</div>
-                    <div className="fw-semibold text-nowrap">View</div>
+                    <div className="small text-body-secondary">{client.phone}</div>
                   </CTableDataCell>
                 </CTableRow>
               ))}
@@ -133,53 +155,15 @@ const Dashboard = () => {
           <CRow>
             <CCol>
               <div className="text-body-secondary">Projects in Progress</div>
-              <div className="fw-semibold">5 Projects</div>
+              <div className="fw-semibold">{projects.filter(project => project.status === 'In Progress').length} Projects</div>
             </CCol>
             <CCol>
               <div className="text-body-secondary">Completed Projects</div>
-              <div className="fw-semibold">100 Projects</div>
+              <div className="fw-semibold">{projects.filter(project => project.status === 'Completed').length} Projects</div>
             </CCol>
           </CRow>
           <CButton color="primary" className="mt-3">
             View All Projects
-          </CButton>
-        </CCardBody>
-      </CCard>
-
-      <CCard className="mb-4">
-        <CCardHeader>Service Reservations</CCardHeader>
-        <CCardBody>
-          <CRow>
-            <CCol>
-              <div className="text-body-secondary">Pending Reservations</div>
-              <div className="fw-semibold">10 Reservations</div>
-            </CCol>
-            <CCol>
-              <div className="text-body-secondary">Completed Reservations</div>
-              <div className="fw-semibold">50 Reservations</div>
-            </CCol>
-          </CRow>
-          <CButton color="primary" className="mt-3">
-            View Reservation Calendar
-          </CButton>
-        </CCardBody>
-      </CCard>
-
-      <CCard className="mb-4">
-        <CCardHeader>Billing and Payments</CCardHeader>
-        <CCardBody>
-          <CRow>
-            <CCol>
-              <div className="text-body-secondary">Pending Invoices</div>
-              <div className="fw-semibold">5 Invoices</div>
-            </CCol>
-            <CCol>
-              <div className="text-body-secondary">Total Billed</div>
-              <div className="fw-semibold">$20,000</div>
-            </CCol>
-          </CRow>
-          <CButton color="primary" className="mt-3">
-            View Invoices
           </CButton>
         </CCardBody>
       </CCard>
@@ -190,11 +174,11 @@ const Dashboard = () => {
           <CRow>
             <CCol>
               <div className="text-body-secondary">New Proposals</div>
-              <div className="fw-semibold">3 Proposals</div>
+              <div className="fw-semibold">{proposals.filter(proposal => proposal.status === 'Pending').length} Proposals</div>
             </CCol>
             <CCol>
               <div className="text-body-secondary">Approved Proposals</div>
-              <div className="fw-semibold">15 Proposals</div>
+              <div className="fw-semibold">{proposals.filter(proposal => proposal.status === 'Accepted').length} Proposals</div>
             </CCol>
           </CRow>
           <CButton color="primary" className="mt-3">
@@ -204,40 +188,20 @@ const Dashboard = () => {
       </CCard>
 
       <CCard className="mb-4">
-        <CCardHeader>Employee Management</CCardHeader>
+        <CCardHeader>Billing and Payments</CCardHeader>
         <CCardBody>
           <CRow>
             <CCol>
-              <div className="text-body-secondary">Total Employees</div>
-              <div className="fw-semibold">25 Employees</div>
+              <div className="text-body-secondary">Total Payments</div>
+              <div className="fw-semibold">{payments.length} Payments</div>
             </CCol>
             <CCol>
-              <div className="text-body-secondary">Active Employees</div>
-              <div className="fw-semibold">20 Employees</div>
+              <div className="text-body-secondary">Total Billed</div>
+              <div className="fw-semibold">${payments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString()}</div>
             </CCol>
           </CRow>
           <CButton color="primary" className="mt-3">
-            View Employees
-          </CButton>
-        </CCardBody>
-      </CCard>
-
-      <CCard className="mb-4">
-        <CCardHeader>Reports</CCardHeader>
-        <CCardBody>
-          <CRow>
-            <CCol>
-              <div className="text-body-secondary">Latest Generated Reports</div>
-              <div className="fw-semibold">Sales Report - July 2024</div>
-              <div className="fw-semibold">Customer Satisfaction Report - July 2024</div>
-            </CCol>
-            <CCol>
-              <div className="text-body-secondary">Total Reports</div>
-              <div className="fw-semibold">10 Reports</div>
-            </CCol>
-          </CRow>
-          <CButton color="primary" className="mt-3">
-            View All Reports
+            View Invoices
           </CButton>
         </CCardBody>
       </CCard>
