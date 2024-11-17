@@ -77,17 +77,6 @@
   ],
   "clients": [
     {
-      "id": "1",
-      "firstname": "Johnf",
-      "lastname": "Doe",
-      "email": "john@example.com",
-      "phone": "123-456-7890",
-      "address": "123 Main St",
-      "birthdate": "1980-01-01",
-      "gender": "Male",
-      "national_id": "AB123456"
-    },
-    {
       "id": "2",
       "firstname": "Jane",
       "lastname": "Smith",
@@ -108,6 +97,28 @@
       "birthdate": "1990-12-31",
       "gender": "Male",
       "national_id": "EF345678"
+    },
+    {
+      "id": "fbd6",
+      "firstname": "Adrian",
+      "lastname": "Vergel",
+      "email": "ADRIAN24VERGEL@GMAIL.COM",
+      "phone": "04129657169",
+      "address": "casa numero 18",
+      "birthdate": "2024-11-16",
+      "gender": "Male",
+      "national_id": "30297111"
+    },
+    {
+      "id": "5e84",
+      "firstname": "Adrian",
+      "lastname": "Vergel",
+      "email": "ADRIAN24VERGEL@GMAIL.COM",
+      "phone": "04149721069",
+      "address": "casa numero 18",
+      "birthdate": "2024-11-16",
+      "gender": "Male",
+      "national_id": "32141543"
     }
   ],
   "users": [
@@ -118,7 +129,7 @@
       "password": "adminpass",
       "phone": "111-222-3333",
       "address": "Admin St",
-      "preferences": "Dark Mode",
+      "preferences": "Light Mode",
       "username": "admin",
       "role_id": 1,
       "status": "Active"
@@ -216,6 +227,24 @@
       "proposal_date": "2023-03-20",
       "budget_type_id": "3",
       "status": "Accepted"
+    },
+    {
+      "id": "4feb",
+      "client_id": "fbd6",
+      "proposal_description": "Hola Soy Goku",
+      "proposal_date": "2024-11-16",
+      "budget_type_id": "1",
+      "status": "Accepted",
+      "comments": []
+    },
+    {
+      "id": "26e3",
+      "client_id": "5e84",
+      "proposal_description": "Hola Soy Vegetta",
+      "proposal_date": "2024-11-17",
+      "budget_type_id": "2",
+      "status": "Accepted",
+      "comments": []
     }
   ],
   "projects": [
@@ -247,6 +276,16 @@
       "end_date": null,
       "status": "Planning",
       "proposal_id": "1",
+      "is_paid": false
+    },
+    {
+      "id": "7eb3",
+      "name": "Hola Soy Goku",
+      "description": "Hola Soy Goku",
+      "start_date": "2024-11-16",
+      "end_date": "2024-11-16",
+      "status": "Completed",
+      "proposal_id": "4feb",
       "is_paid": false
     }
   ],
@@ -339,6 +378,30 @@
       "service_id": 1,
       "is_paid": true,
       "status": "Completed",
+      "end_date": null
+    },
+    {
+      "id": "5e2a",
+      "project_id": "7eb3",
+      "service_id": 2165,
+      "is_paid": true,
+      "status": "Completed",
+      "end_date": null
+    },
+    {
+      "id": "f89e",
+      "project_id": "2",
+      "service_id": 2,
+      "is_paid": true,
+      "status": "In Progress",
+      "end_date": null
+    },
+    {
+      "id": "89f0",
+      "project_id": "2",
+      "service_id": 2,
+      "is_paid": false,
+      "status": "In Progress",
       "end_date": null
     }
   ],
