@@ -6,9 +6,9 @@ import { useSelector } from 'react-redux'
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
 import Dashboard from './views/dashboard/Dashboard'
-const HomePage = React.lazy(()=>import('./views/pages/home/homepage'))
+const HomePage = React.lazy(() => import('./views/pages/home/homepage'))
 
-// Containers
+// Containersa
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
 
 // Pages
@@ -24,8 +24,8 @@ const App = () => {
 
   useEffect(() => {
     setColorMode('light')
-  }, [setColorMode]) 
- 
+  }, [setColorMode])
+
 
   return (
     <BrowserRouter>
@@ -41,7 +41,7 @@ const App = () => {
           <Route exact path="/register" name="Register Page" element={<Register />} />
           <Route exact path="/404" name="Page 404" element={<Page404 />} />
           <Route exact path="/500" name="Page 500" element={<Page500 />} />
-          <Route path="*" name="Home" element={<DefaultLayout/>} />
+          <Route path="*" name="Home" element={<DefaultLayout />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
