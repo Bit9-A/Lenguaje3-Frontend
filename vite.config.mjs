@@ -49,6 +49,7 @@ export default defineConfig(() => {
       open: true,
       strictPort: true,
       host: true,
+      allowedHosts: ['lenguaje3-frontend-production.up.railway.app'],
       proxy: {
         // https://vitejs.dev/config/server-options.html
       },
