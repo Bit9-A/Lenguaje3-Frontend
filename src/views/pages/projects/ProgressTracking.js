@@ -27,6 +27,7 @@ import {
   cilClock,
   cilHamburgerMenu
 } from '@coreui/icons'
+import { baseUrl } from '../../../config' // Importar baseUrl
 
 const ProgressTracking = () => {
   return (

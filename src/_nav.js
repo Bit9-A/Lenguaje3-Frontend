@@ -74,15 +74,9 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Propuestas Pendientes',
+    name: 'Propuestas',
     to: '/proposals/pending',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Historial de Propuestas',
-    to: '/proposals/history',
-    icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
   },
   {
     component: CNavTitle,

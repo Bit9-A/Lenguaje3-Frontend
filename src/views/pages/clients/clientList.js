@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
   CCard,
   CCardBody,
@@ -29,8 +29,8 @@ import {
   CForm,
   CFormLabel,
   CTooltip,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
+} from '@coreui/react';
+import CIcon from '@coreui/icons-react';
 import {
   cilOptions,
   cilSearch,
@@ -41,17 +41,19 @@ import {
   cilXCircle,
   cilClock,
   cilFingerprint,
-} from '@coreui/icons'
-import { helpHttp } from '../../../helpers/helpHTTP'
+} from '@coreui/icons';
+import { helpHttp } from '../../../helpers/helpHTTP';
+import { baseUrl } from '../../../config' // Importar baseUrl
+
 
 const ClientList = () => {
-  const [clients, setClients] = useState([])
-  const [projects, setProjects] = useState([])
-  const [proposals, setProposals] = useState([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('Todos')
-  const [showModal, setShowModal] = useState(false)
-  const [currentClient, setCurrentClient] = useState(null)
+  const [clients, setClients] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [proposals, setProposals] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('Todos');
+  const [showModal, setShowModal] = useState(false);
+  const [currentClient, setCurrentClient] = useState(null);
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
@@ -59,127 +61,127 @@ const ClientList = () => {
     phone: '',
     address: '',
     national_id: '',
-  })
+  });
 
-  const api = helpHttp()
-  const baseUrl = 'http://localhost:5000'
+  const api = helpHttp();
 
   useEffect(() => {
     const fetchData = async () => {
-      const clientsRes = await api.get(`${baseUrl}/clients`)
-      const projectsRes = await api.get(`${baseUrl}/projects`)
-      const proposalsRes = await api.get(`${baseUrl}/client_proposals`)
+      const clientsRes = await api.get(`${baseUrl}/clients`);
+      const projectsRes = await api.get(`${baseUrl}/projects`);
+      const proposalsRes = await api.get(`${baseUrl}/proposals`);
 
       if (!clientsRes.err && !projectsRes.err && !proposalsRes.err) {
-        setClients(clientsRes)
-        setProjects(projectsRes)
-        setProposals(proposalsRes)
+        setClients(clientsRes);
+        setProjects(projectsRes);
+        setProposals(proposalsRes);
       } else {
-        console.error('Error fetching data')
+        console.error('Error fetching data');
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const getClientStatus = (clientId) => {
-    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId)
-    const acceptedProposals = clientProposals.filter(proposal => proposal.status === 'Accepted')
-    
+    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId);
+    const acceptedProposals = clientProposals.filter(proposal => proposal.status === 'Accepted');
+
     if (acceptedProposals.length > 0) {
-      return 'Activo'
+      return 'Activo';
     } else if (clientProposals.length > 0) {
-      return 'Potencial'
+      return 'Potencial';
     } else {
-      return 'Inactivo'
+      return 'Inactivo';
     }
-  }
+  };
 
   const getClientProjects = (clientId) => {
-    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId)
-    const clientProjects = projects.filter(project => 
+    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId);
+    const clientProjects = projects.filter(project =>
       clientProposals.some(proposal => proposal.id === project.proposal_id)
-    )
-    const completed = clientProjects.filter(project => project.status === 'Completed').length
-    const inProgress = clientProjects.filter(project => project.status === 'In Progress').length
-    return { completed, inProgress }
-  }
+    );
+    const completed = clientProjects.filter(project => project.status === 'Completed').length;
+    const inProgress = clientProjects.filter(project => project.status === 'In Progress').length;
+    return { completed, inProgress };
+  };
 
   const getClientProposals = (clientId) => {
-    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId)
-    const accepted = clientProposals.filter(proposal => proposal.status === 'Accepted').length
-    const rejected = clientProposals.filter(proposal => proposal.status === 'Rejected').length
-    const pending = clientProposals.filter(proposal => proposal.status === 'Pending').length
-    return { accepted, rejected, pending }
-  }
+    const clientProposals = proposals.filter(proposal => proposal.client_id === clientId);
+    const accepted = clientProposals.filter(proposal => proposal.status === 'Accepted').length;
+    const rejected = clientProposals.filter(proposal => proposal.status === 'Rejected').length;
+    const pending = clientProposals.filter(proposal => proposal.status === 'Pending').length;
+    return { accepted, rejected, pending };
+  };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-  }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (currentClient) {
-      await updateClient(currentClient.id, formData)
+      await updateClient(currentClient.id, formData);
     }
-    setShowModal(false)
-    setCurrentClient(null)
+    setShowModal(false);
+    setCurrentClient(null);
     setFormData({
       firstname: '',
       lastname: '',
       email: '',
       phone: '',
       address: '',
-    })
-    const updatedClients = await api.get(`${baseUrl}/clients`)
+      national_id: '',
+    });
+    const updatedClients = await api.get(`${baseUrl}/clients`);
     if (!updatedClients.err) {
-      setClients(updatedClients)
+      setClients(updatedClients);
     }
-  }
+  };
 
   const updateClient = async (id, client) => {
     try {
-      await api.put(`${baseUrl}/clients/${id}`, { body: client })
+      await api.put(`${baseUrl}/clients/${id}`, { body: client });
     } catch (error) {
-      console.error('Error updating client:', error)
+      console.error('Error updating client:', error);
     }
-  }
+  };
 
   const deleteClient = async (id) => {
     if (window.confirm('¿Está seguro que desea eliminar este cliente?')) {
       try {
-        await api.del(`${baseUrl}/clients/${id}`)
-        const updatedClients = await api.get(`${baseUrl}/clients`)
+        await api.del(`${baseUrl}/clients/${id}`);
+        const updatedClients = await api.get(`${baseUrl}/clients`);
         if (!updatedClients.err) {
-          setClients(updatedClients)
+          setClients(updatedClients);
         }
       } catch (error) {
-        console.error('Error deleting client:', error)
+        console.error('Error deleting client:', error);
       }
     }
-  }
+  };
 
   const openModal = (client = null) => {
     if (client) {
-      setCurrentClient(client)
-      setFormData(client)
+      setCurrentClient(client);
+      setFormData(client);
     }
-    setShowModal(true)
-  }
+    setShowModal(true);
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Activo':
-        return <CBadge color="success" shape="rounded-pill">{status}</CBadge>
+        return <CBadge color="success" shape="rounded-pill">{status}</CBadge>;
       case 'Inactivo':
-        return <CBadge color="danger" shape="rounded-pill">{status}</CBadge>
+        return <CBadge color="danger" shape="rounded-pill">{status}</CBadge>;
       case 'Potencial':
-        return <CBadge color="warning" shape="rounded-pill">{status}</CBadge>
+        return <CBadge color="warning" shape="rounded-pill">{status}</CBadge>;
       default:
-        return <CBadge color="secondary" shape="rounded-pill">{status}</CBadge>
+        return <CBadge color="secondary" shape="rounded-pill">{status}</CBadge>;
     }
-  }
+  };
 
   const filteredClients = clients.filter(
     (client) =>
@@ -187,7 +189,7 @@ const ClientList = () => {
         client.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (statusFilter === 'Todos' || getClientStatus(client.id) === statusFilter)
-  )
+  );
 
   return (
     <CRow>
@@ -239,9 +241,9 @@ const ClientList = () => {
               </CTableHead>
               <CTableBody>
                 {filteredClients.map((client) => {
-                  const clientProjects = getClientProjects(client.id)
-                  const clientProposals = getClientProposals(client.id)
-                  const clientStatus = getClientStatus(client.id)
+                  const clientProjects = getClientProjects(client.id);
+                  const clientProposals = getClientProposals(client.id);
+                  const clientStatus = getClientStatus(client.id);
                   return (
                     <CTableRow key={client.id} className="align-middle">
                       <CTableDataCell>
@@ -335,7 +337,7 @@ const ClientList = () => {
                         </CDropdown>
                       </CTableDataCell>
                     </CTableRow>
-                  )
+                  );
                 })}
               </CTableBody>
             </CTable>
@@ -428,7 +430,7 @@ const ClientList = () => {
         </CForm>
       </CModal>
     </CRow>
-  )
-}
+  );
+};
 
-export default ClientList
+export default ClientList;

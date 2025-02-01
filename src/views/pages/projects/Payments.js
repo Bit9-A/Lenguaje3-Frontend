@@ -24,6 +24,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilChevronBottom, cilChevronRight, cilFile, cilCheckCircle, cilXCircle, cilEnvelopeClosed } from '@coreui/icons'
+import { baseUrl } from '../../../config' // Importar baseUrl
 
 const Payments = () => {
   const [projects, setProjects] = useState([

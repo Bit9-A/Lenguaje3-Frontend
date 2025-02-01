@@ -91,3 +91,19 @@ body {
     background-repeat: no-repeat; 
     height: 100vh; 
 }
+.border-dashed {
+    border: 2px dashed #e9ecef;
+    border-radius: 0.5rem;
+  }
+  
+  .card {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  }

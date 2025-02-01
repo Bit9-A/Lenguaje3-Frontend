@@ -1,4 +1,5 @@
 export const helpHttp = () => {
+
     const handleErrors = (response) => {
         if (!response.ok) {
             return Promise.reject({
@@ -14,6 +15,11 @@ export const helpHttp = () => {
         const defaultHeaders = {
             'Content-Type': 'application/json',
         };
+
+        const token = localStorage.getItem('token');
+        if (token) {
+            defaultHeaders['Authorization'] = `Bearer ${token}`;
+        }
 
         const controller = new AbortController();
         options.signal = controller.signal;

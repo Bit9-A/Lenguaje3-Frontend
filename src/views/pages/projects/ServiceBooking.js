@@ -27,6 +27,8 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilSearch, cilPlus, cilPencil, cilTrash } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
+import { baseUrl } from '../../../config' // Importar baseUrl
+
 
 const ServiceManagement = () => {
   const [services, setServices] = useState([])
@@ -39,7 +41,6 @@ const ServiceManagement = () => {
   const [formData, setFormData] = useState({})
 
   const api = helpHttp()
-  const baseUrl = 'http://localhost:5000'
 
   useEffect(() => {
     fetchServices()
@@ -56,7 +57,7 @@ const ServiceManagement = () => {
   }
 
   const fetchMaterials = async () => {
-    const response = await api.get(`${baseUrl}/material_types`)
+    const response = await api.get(`${baseUrl}/materials`)
     if (!response.err) {
       setMaterials(response)
     } else {

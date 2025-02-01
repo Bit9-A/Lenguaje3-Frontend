@@ -48,14 +48,14 @@ const ClientInteractions = () => {
   });
 
   const api = helpHttp();
-  const baseUrl = 'http://localhost:5000';
+  const baseUrl = 'http://localhost:3000';
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const interactionsRes = await api.get(`${baseUrl}/client_interactions`);
+    const interactionsRes = await api.get(`${baseUrl}/notifications/interactions`);
     const clientsRes = await api.get(`${baseUrl}/clients`);
     const employeesRes = await api.get(`${baseUrl}/employees`);
     if (!interactionsRes.err && !clientsRes.err && !employeesRes.err) {

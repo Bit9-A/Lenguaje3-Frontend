@@ -21,76 +21,121 @@ import {
   CModalTitle,
   CModalBody,
   CModalFooter,
+  CForm,
+  CFormTextarea,
+  CFormSelect,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilSearch, cilCheckCircle, cilXCircle, cilCommentSquare } from '@coreui/icons'
+import { cilSearch, cilCommentSquare, cilClock, cilTrash, cilCheckCircle, cilXCircle } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
+import { baseUrl } from '../../../config' // Importar baseUrl
 
-const ReceivedProposals = () => {
+const Proposals = () => {
   const [proposals, setProposals] = useState([])
   const [clients, setClients] = useState([])
   const [budgetTypes, setBudgetTypes] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProposal, setSelectedProposal] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [newComment, setNewComment] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All')
 
   const api = helpHttp()
-  const baseUrl = 'http://localhost:5000'
+
+  useEffect(() => {
+    fetchProposals()
+    fetchClients()
+  }, [])
+
+  const fetchProposals = async () => {
+    const response = await api.get(`${baseUrl}/proposals`)
+    if (!response.err) {
+      setProposals(response)
+    } else {
+      console.error('Error fetching proposals:', response.err)
+    }
+  }
+
+  const fetchClients = async () => {
+    const response = await api.get(`${baseUrl}/clients`)
+    if (!response.err) {
+      setClients(response)
+    } else {
+      console.error('Error fetching clients:', response.err)
+    }
+  }
+
+ 
 
   const getClientName = (clientId) => {
-    const client = clients.find(c => c.id === clientId.toString())
+    const client = clients.find(c => c.id === clientId)
     return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client'
   }
 
-  const getBudgetTypeName = (budgetTypeId) => {
-    const budgetType = budgetTypes.find(bt => bt.id === budgetTypeId.toString())
-    return budgetType ? budgetType.type_name : 'Unknown Budget Type'
-  }
+  
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const proposalsRes = await api.get(`${baseUrl}/client_proposals`)
-      const clientsRes = await api.get(`${baseUrl}/clients`)
-      const budgetTypesRes = await api.get(`${baseUrl}/budget_types`)
-
-      if (!proposalsRes.err && !clientsRes.err && !budgetTypesRes.err) {
-        setProposals(proposalsRes.filter(proposal => proposal.status === 'Pending'))
-        setClients(clientsRes)
-        setBudgetTypes(budgetTypesRes)
-      } else {
-        console.error('Error fetching data')
-      }
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Accepted':
+        return <CBadge color="success" shape="rounded-pill">{status}</CBadge>
+      case 'Rejected':
+        return <CBadge color="danger" shape="rounded-pill">{status}</CBadge>
+      case 'Pending':
+        return <CBadge color="warning" shape="rounded-pill">{status}</CBadge>
+      default:
+        return <CBadge color="secondary" shape="rounded-pill">{status}</CBadge>
     }
-
-    fetchData()
-  }, [])
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value)
   }
 
   const filteredProposals = proposals.filter(proposal =>
-    getClientName(proposal.client_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    proposal.proposal_description.toLowerCase().includes(searchTerm.toLowerCase())
+    (proposal.proposal_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    getClientName(proposal.client_id).toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (statusFilter === 'All' || proposal.status === statusFilter)
   )
 
-  const handleViewProposal = (proposal) => {
+  const handleViewDetails = (proposal) => {
     setSelectedProposal(proposal)
     setShowModal(true)
   }
 
-  const handleCloseModal = () => {
-    setShowModal(false)
-    setSelectedProposal(null)
+  const handleAddComment = async (e) => {
+    e.preventDefault()
+    if (newComment.trim() !== '' && selectedProposal) {
+      const updatedProposal = {
+        ...selectedProposal,
+        comments: [...(selectedProposal.comments || []), newComment.trim()]
+      }
+      const response = await api.put(`${baseUrl}/proposals/${selectedProposal.id}`, { body: updatedProposal })
+      if (!response.err) {
+        setProposals(proposals.map(p =>
+          p.id === selectedProposal.id ? updatedProposal : p
+        ))
+        setSelectedProposal(updatedProposal)
+        setNewComment('')
+      } else {
+        console.error('Error adding comment:', response.err)
+      }
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this proposal?')) {
+      const response = await api.del(`${baseUrl}/proposals/${id}`)
+      if (!response.err) {
+        setProposals(proposals.filter(p => p.id !== id))
+      } else {
+        console.error('Error deleting proposal:', response.err)
+      }
+    }
   }
 
   const handleApproveProposal = async () => {
     if (selectedProposal) {
       const updatedProposal = { ...selectedProposal, status: 'Accepted' }
-      const res = await api.put(`${baseUrl}/client_proposals/${selectedProposal.id}`, { body: updatedProposal })
+      const res = await api.put(`${baseUrl}/proposals/${selectedProposal.id}`, { body: updatedProposal })
       if (!res.err) {
-        setProposals(proposals.filter(p => p.id !== selectedProposal.id))
-        handleCloseModal()
+        setProposals(proposals.map(p => p.id === selectedProposal.id ? updatedProposal : p))
+        setShowModal(false)
       } else {
         console.error('Error updating proposal. Please try again.')
       }
@@ -100,10 +145,10 @@ const ReceivedProposals = () => {
   const handleRejectProposal = async () => {
     if (selectedProposal) {
       const updatedProposal = { ...selectedProposal, status: 'Rejected' }
-      const res = await api.put(`${baseUrl}/client_proposals/${selectedProposal.id}`, { body: updatedProposal })
+      const res = await api.put(`${baseUrl}/proposals/${selectedProposal.id}`, { body: updatedProposal })
       if (!res.err) {
-        setProposals(proposals.filter(p => p.id !== selectedProposal.id))
-        handleCloseModal()
+        setProposals(proposals.map(p => p.id === selectedProposal.id ? updatedProposal : p))
+        setShowModal(false)
       } else {
         console.error('Error updating proposal. Please try again.')
       }
@@ -115,11 +160,11 @@ const ReceivedProposals = () => {
       <CCol xs={12}>
         <CCard className="mb-4 shadow-sm">
           <CCardHeader className="bg-transparent border-bottom-0">
-            <h2 className="mb-0">Pending Proposals</h2>
+            <h2 className="mb-0">Proposals</h2>
           </CCardHeader>
           <CCardBody>
-            <CRow className="mb-4">
-              <CCol md={6}>
+            <CRow className="mb-4 align-items-end">
+              <CCol md={4}>
                 <CInputGroup>
                   <CInputGroupText className="bg-light">
                     <CIcon icon={cilSearch} />
@@ -127,19 +172,31 @@ const ReceivedProposals = () => {
                   <CFormInput
                     placeholder="Search proposals..."
                     value={searchTerm}
-                    onChange={handleSearch}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="border-start-0"
                   />
                 </CInputGroup>
+              </CCol>
+              <CCol md={4}>
+                <CFormSelect
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Accepted">Accepted</option>
+                  <option value="Rejected">Rejected</option>
+                </CFormSelect>
               </CCol>
             </CRow>
             <CTable align="middle" className="mb-0 border" hover responsive>
               <CTableHead>
                 <CTableRow className="bg-light">
-                  <CTableHeaderCell>Client</CTableHeaderCell>
-                  <CTableHeaderCell>Description</CTableHeaderCell>
+                  <CTableHeaderCell>Client Name</CTableHeaderCell>
+                  <CTableHeaderCell>Project Description</CTableHeaderCell>
                   <CTableHeaderCell>Date</CTableHeaderCell>
                   <CTableHeaderCell>Budget Type</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
@@ -149,16 +206,30 @@ const ReceivedProposals = () => {
                     <CTableDataCell>{getClientName(proposal.client_id)}</CTableDataCell>
                     <CTableDataCell>{proposal.proposal_description}</CTableDataCell>
                     <CTableDataCell>{proposal.proposal_date}</CTableDataCell>
-                    <CTableDataCell>{getBudgetTypeName(proposal.budget_type_id)}</CTableDataCell>
+                    <CTableDataCell>{proposal.budget}$</CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      {getStatusBadge(proposal.status)}
+                    </CTableDataCell>
                     <CTableDataCell className="text-center">
                       <CButton 
                         color="info" 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => handleViewProposal(proposal)}
+                        onClick={() => handleViewDetails(proposal)}
+                        className="me-2"
                       >
-                        <CIcon icon={cilCommentSquare} /> View
+                        <CIcon icon={cilCommentSquare} /> View Details
                       </CButton>
+                      {proposal.status !== 'Pending' && (
+                        <CButton 
+                          color="danger" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDelete(proposal.id)}
+                        >
+                          <CIcon icon={cilTrash} /> Delete
+                        </CButton>
+                      )}
                     </CTableDataCell>
                   </CTableRow>
                 ))}
@@ -168,29 +239,53 @@ const ReceivedProposals = () => {
         </CCard>
       </CCol>
 
-      <CModal visible={showModal} onClose={handleCloseModal}>
+      <CModal visible={showModal} onClose={() => setShowModal(false)} size="lg">
         <CModalHeader closeButton>
           <CModalTitle>Proposal Details</CModalTitle>
         </CModalHeader>
         <CModalBody>
           {selectedProposal && (
             <>
+              <h4>{selectedProposal.proposal_description}</h4>
               <p><strong>Client:</strong> {getClientName(selectedProposal.client_id)}</p>
-              <p><strong>Description:</strong> {selectedProposal.proposal_description}</p>
               <p><strong>Date:</strong> {selectedProposal.proposal_date}</p>
-              <p><strong>Budget Type:</strong> {getBudgetTypeName(selectedProposal.budget_type_id)}</p>
+              <p><strong>Budget Type:</strong> {selectedProposal.budget}$</p>
+              <p><strong>Status:</strong> {getStatusBadge(selectedProposal.status)}</p>
+              {selectedProposal.status === 'Pending' && (
+                <div className="mb-3">
+                  <CButton color="success" onClick={handleApproveProposal} className="me-2">
+                    <CIcon icon={cilCheckCircle} /> Approve
+                  </CButton>
+                  <CButton color="danger" onClick={handleRejectProposal}>
+                    <CIcon icon={cilXCircle} /> Reject
+                  </CButton>
+                </div>
+              )}
+              <h5 className="mt-4">Comments:</h5>
+              {selectedProposal.comments && selectedProposal.comments.map((comment, index) => (
+                <div key={index} className="mb-2 p-2 bg-light rounded">
+                  <CIcon icon={cilClock} className="me-2" />
+                  {comment}
+                </div>
+              ))}
+              <CForm onSubmit={handleAddComment} className="mt-4">
+                <CFormTextarea
+                  id="newComment"
+                  label="Add a comment"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={3}
+                ></CFormTextarea>
+                <CButton type="submit" color="primary" className="mt-3">
+                  Add Comment
+                </CButton>
+              </CForm>
             </>
           )}
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={handleCloseModal}>
+          <CButton color="secondary" onClick={() => setShowModal(false)}>
             Close
-          </CButton>
-          <CButton color="success" onClick={handleApproveProposal}>
-            <CIcon icon={cilCheckCircle} /> Approve
-          </CButton>
-          <CButton color="danger" onClick={handleRejectProposal}>
-            <CIcon icon={cilXCircle} /> Reject
           </CButton>
         </CModalFooter>
       </CModal>
@@ -198,4 +293,4 @@ const ReceivedProposals = () => {
   )
 }
 
-export default ReceivedProposals
+export default Proposals

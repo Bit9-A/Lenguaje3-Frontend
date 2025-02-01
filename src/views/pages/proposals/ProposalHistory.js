@@ -27,6 +27,8 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilSearch, cilCommentSquare, cilClock, cilTrash } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
+import { baseUrl } from '../../../config' // Importar baseUrl
+
 
 const ProposalHistory = () => {
   const [proposals, setProposals] = useState([])
@@ -37,7 +39,6 @@ const ProposalHistory = () => {
   const [newComment, setNewComment] = useState('')
 
   const api = helpHttp()
-  const baseUrl = 'http://localhost:5000'
 
   useEffect(() => {
     fetchProposals()
@@ -45,7 +46,7 @@ const ProposalHistory = () => {
   }, [])
 
   const fetchProposals = async () => {
-    const response = await api.get(`${baseUrl}/client_proposals`)
+    const response = await api.get(`${baseUrl}/proposals`)
     if (!response.err) {
       const filteredProposals = response.filter(proposal => 
         proposal.status === 'Accepted' || proposal.status === 'Rejected'
@@ -98,7 +99,7 @@ const ProposalHistory = () => {
         ...selectedProposal,
         comments: [...(selectedProposal.comments || []), newComment.trim()]
       }
-      const response = await api.put(`${baseUrl}/client_proposals/${selectedProposal.id}`, { body: updatedProposal })
+      const response = await api.put(`${baseUrl}/proposals/${selectedProposal.id}`, { body: updatedProposal })
       if (!response.err) {
         setProposals(proposals.map(p =>
           p.id === selectedProposal.id ? updatedProposal : p
@@ -113,7 +114,7 @@ const ProposalHistory = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this proposal?')) {
-      const response = await api.del(`${baseUrl}/client_proposals/${id}`)
+      const response = await api.del(`${baseUrl}/proposals/${id}`)
       if (!response.err) {
         setProposals(proposals.filter(p => p.id !== id))
       } else {

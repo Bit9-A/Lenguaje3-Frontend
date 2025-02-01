@@ -1,10 +1,11 @@
-import React from 'react'
-import { AppContent, AppSidebar, AppFooter, DashboardHeader } from '../components/index'
-import HomeHeader from "../components/HomeHeader"
-import { useLocation } from 'react-router-dom'
+import React, { useEffect } from 'react';
+import { AppContent, AppSidebar, AppFooter, DashboardHeader } from '../components/index';
+import HomeHeader from "../components/HomeHeader";
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const DefaultLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const dashboardRoutes = [
     '/dashboard',
@@ -14,7 +15,7 @@ const DefaultLayout = () => {
     '/projects/manage',
     '/projects/development',
     '/progress/tracking',
-    '/projects/progress', 
+    '/projects/progress',
     '/services/reservations',
     '/billing/payments',
     '/proposals/pending',
@@ -23,25 +24,29 @@ const DefaultLayout = () => {
     '/admin/reports',
     '/admin/users',
     '/communication/messages',
-    
   ];
 
   const isDashBoard = dashboardRoutes.includes(location.pathname);
 
-  console.log(isDashBoard);
+  useEffect(() => {
+    const loggedInUser = localStorage.getItem('user');
+    if (isDashBoard && !loggedInUser) {
+      navigate('/login');
+    }
+  }, [isDashBoard, navigate]);
 
   return (
     <div>
-      {isDashBoard ? <AppSidebar/>: null}
+      {isDashBoard ? <AppSidebar /> : null}
       <div className="wrapper d-flex flex-column min-vh-100">
-        {isDashBoard ? <DashboardHeader/> : <HomeHeader/>}
+        {isDashBoard ? <DashboardHeader /> : <HomeHeader />}
         <div className="body flex-grow-1">
           <AppContent />
         </div>
         <AppFooter />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DefaultLayout
+export default DefaultLayout;

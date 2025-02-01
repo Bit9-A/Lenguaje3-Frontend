@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
   CAvatar,
   CButton,
@@ -14,16 +14,15 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilPeople, cilCloudDownload, cilUser } from '@coreui/icons'
-import { helpHttp } from '../../helpers/helpHTTP'
+} from '@coreui/react';
+import CIcon from '@coreui/icons-react';
+import { cilPeople, cilCloudDownload } from '@coreui/icons';
+import { helpHttp } from '../../helpers/helpHTTP';
+import { baseUrl } from '../../config';
+import WidgetsDropdown from '../widgets/WidgetsDropdown';
+import MainChart from './MainChart';
 
-import WidgetsDropdown from '../widgets/WidgetsDropdown'
-import MainChart from './MainChart'
-
-const api = helpHttp()
-const baseUrl = 'http://localhost:5000'
+const api = helpHttp();
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState({
@@ -35,47 +34,42 @@ const Dashboard = () => {
       { title: 'Satisfied Clients', value: 0 },
       { title: 'Current Projects', value: 0 },
     ],
-  })
+  });
 
-  const [clients, setClients] = useState([])
-  const [projects, setProjects] = useState([])
-  const [proposals, setProposals] = useState([])
-  const [payments, setPayments] = useState([])
+  const [clients, setClients] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [proposals, setProposals] = useState([]);
+  const [payments, setPayments] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const clientsRes = await api.get(`${baseUrl}/clients`)
-      const projectsRes = await api.get(`${baseUrl}/projects`)
-      const proposalsRes = await api.get(`${baseUrl}/client_proposals`)
-      const paymentsRes = await api.get(`${baseUrl}/payments`)
+      const dashboardRes = await api.get(`${baseUrl}/dashboard`);
 
-      if (!clientsRes.err && !projectsRes.err && !proposalsRes.err && !paymentsRes.err) {
-        setClients(clientsRes)
-        setProjects(projectsRes)
-        setProposals(proposalsRes)
-        setPayments(paymentsRes)
+      if (!dashboardRes.err) {
+        const { metrics, recentClients, currentProjects, receivedProposals, billingAndPayments } = dashboardRes;
 
-        const activeProjects = projectsRes.filter(project => project.status === 'In Progress').length
-        const completedProjects = projectsRes.filter(project => project.status === 'Completed').length
-        const totalRevenue = paymentsRes.reduce((sum, payment) => sum + payment.amount, 0)
+        setClients(recentClients);
+        setProjects(currentProjects);
+        setProposals(receivedProposals);
+        setPayments(billingAndPayments);
 
         setMetrics({
-          activeProjects,
-          totalClients: clientsRes.length,
-          totalRevenue: `$${totalRevenue.toLocaleString()}`,
+          activeProjects: metrics.activeProjects,
+          totalClients: metrics.totalClients,
+          totalRevenue: `$${metrics.totalRevenue.toLocaleString()}`,
           performanceStats: [
-            { title: 'Completed Projects', value: completedProjects },
-            { title: 'Satisfied Clients', value: clientsRes.length }, // Assuming all clients are satisfied
-            { title: 'Current Projects', value: activeProjects },
+            { title: 'Completed Projects', value: metrics.completedProjects },
+            { title: 'Satisfied Clients', value: metrics.totalClients }, // Assuming all clients are satisfied
+            { title: 'Current Projects', value: metrics.activeProjects },
           ],
-        })
+        });
       } else {
-        console.error('Error fetching data')
+        console.error('Error fetching dashboard data');
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -123,14 +117,12 @@ const Dashboard = () => {
                   <CIcon icon={cilPeople} />
                 </CTableHeaderCell>
                 <CTableHeaderCell className="bg-body-tertiary">Client</CTableHeaderCell>
-                <CTableHeaderCell className="bg-body-tertiary text-center">
-                  Email
-                </CTableHeaderCell>
+                <CTableHeaderCell className="bg-body-tertiary text-center">Email</CTableHeaderCell>
                 <CTableHeaderCell className="bg-body-tertiary">Phone</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>
-              {clients.slice(0, 5).map((client, index) => (
+              {clients.slice(0, 5).map((client) => (
                 <CTableRow key={client.id}>
                   <CTableDataCell className="text-center">
                     <CAvatar size="md" src={`https://ui-avatars.com/api/?name=${client.firstname}+${client.lastname}`} />
@@ -206,7 +198,7 @@ const Dashboard = () => {
         </CCardBody>
       </CCard>
     </>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

@@ -12,54 +12,66 @@ import {
   CTableHeaderCell,
   CTableRow,
   CButton,
+  CInputGroup,
+  CInputGroupText,
+  CFormInput,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem,
+  CBadge,
+  CAvatar,
   CModal,
   CModalHeader,
   CModalTitle,
   CModalBody,
   CModalFooter,
   CForm,
-  CFormInput,
+  CFormLabel,
   CFormSelect,
-  CBadge,
-  CInputGroup,
-  CInputGroupText,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilPlus, cilSearch } from '@coreui/icons'
+import {
+  cilOptions,
+  cilSearch,
+  cilEnvelopeClosed,
+  cilPhone,
+  cilUser,
+  cilPlus,
+} from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
+import { baseUrl } from '../../../config' // Importar baseUrl
+import { Link } from 'react-router-dom'
 
-const UserManagement = () => {
+const Users = () => {
   const [users, setUsers] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All')
   const [showModal, setShowModal] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
-    password: '',
     phone: '',
-    address: '',
     preferences: '',
     username: '',
     role_id: '',
-    status: 'Active'
+    status: 'Active',
+    employee_id: null,
   })
-
   const api = helpHttp()
-  const baseUrl = 'http://localhost:5000/users'
 
   useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  const fetchUsers = async () => {
-    const response = await api.get(baseUrl)
-    if (!response.err) {
-      setUsers(response)
-    } else {
-      console.error('Error fetching users:', response.err)
+    const fetchData = async () => {
+      const usersRes = await api.get(`${baseUrl}/users`)
+      if (!usersRes.err) {
+        setUsers(Array.isArray(usersRes) ? usersRes : [])
+      } else {
+        setUsers([])
+      }
     }
-  }
+
+    fetchData()
+  }, [])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -71,45 +83,55 @@ const UserManagement = () => {
     if (currentUser) {
       await updateUser(currentUser.id, formData)
     } else {
-      await createUser(formData)
+      await addUser(formData)
     }
     setShowModal(false)
     setCurrentUser(null)
     setFormData({
-      name: '',
       email: '',
-      password: '',
       phone: '',
-      address: '',
       preferences: '',
       username: '',
       role_id: '',
-      status: 'Active'
+      status: 'Active',
+      employee_id: null,
     })
-    fetchUsers()
-  }
-
-  const createUser = async (userData) => {
-    const response = await api.post(baseUrl, { body: userData })
-    if (response.err) {
-      console.error('Error creating user:', response.err)
+    const usersRes = await api.get(`${baseUrl}/users`)
+    if (!usersRes.err) {
+      setUsers(Array.isArray(usersRes) ? usersRes : [])
+    } else {
+      setUsers([])
     }
   }
 
-  const updateUser = async (id, userData) => {
-    const response = await api.put(`${baseUrl}/${id}`, { body: userData })
-    if (response.err) {
-      console.error('Error updating user:', response.err)
+  const addUser = async (user) => {
+    try {
+      await api.post(`${baseUrl}/users`, { body: user })
+    } catch (error) {
+      console.error('Error adding user:', error)
+    }
+  }
+
+  const updateUser = async (id, user) => {
+    try {
+      await api.put(`${baseUrl}/users/${id}`, { body: user })
+    } catch (error) {
+      console.error('Error updating user:', error)
     }
   }
 
   const deleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      const response = await api.del(`${baseUrl}/${id}`)
-      if (!response.err) {
-        fetchUsers()
-      } else {
-        console.error('Error deleting user:', response.err)
+      try {
+        await api.del(`${baseUrl}/users/${id}`)
+        const usersRes = await api.get(`${baseUrl}/users`)
+        if (!usersRes.err) {
+          setUsers(Array.isArray(usersRes) ? usersRes : [])
+        } else {
+          setUsers([])
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error)
       }
     }
   }
@@ -121,77 +143,153 @@ const UserManagement = () => {
     } else {
       setCurrentUser(null)
       setFormData({
-        name: '',
         email: '',
-        password: '',
         phone: '',
-        address: '',
         preferences: '',
         username: '',
         role_id: '',
-        status: 'Active'
+        status: 'Active',
+        employee_id: null,
       })
     }
     setShowModal(true)
   }
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Active':
+        return (
+          <CBadge color="success" shape="rounded-pill">
+            {status}
+          </CBadge>
+        )
+      case 'Inactive':
+        return (
+          <CBadge color="danger" shape="rounded-pill">
+            {status}
+          </CBadge>
+        )
+      default:
+        return (
+          <CBadge color="secondary" shape="rounded-pill">
+            {status}
+          </CBadge>
+        )
+    }
+  }
+
+  const filteredUsers = users
+    ? users.filter(
+        (user) =>
+          ((user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))) &&
+          (statusFilter === 'All' || user.status === statusFilter),
+      )
+    : []
 
   return (
     <CRow>
       <CCol xs={12}>
-        <CCard className="mb-4">
-          <CCardHeader>
-            <strong>User Management</strong>
-            <CButton color="primary" className="float-end" onClick={() => openModal()}>
-              <CIcon icon={cilPlus} /> Add New User
+        <CCard className="mb-4 shadow-sm">
+          <CCardHeader className="bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
+            <h2 className="mb-0">User List</h2>
+            <CButton color="primary" onClick={() => openModal()}>
+              <CIcon icon={cilPlus} className="me-2" />
+              Add User
             </CButton>
           </CCardHeader>
           <CCardBody>
-            <CInputGroup className="mb-3">
-              <CInputGroupText>
-                <CIcon icon={cilSearch} />
-              </CInputGroupText>
-              <CFormInput
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </CInputGroup>
+            <CRow className="mb-4 align-items-center">
+              <CCol md={6} className="mb-3 mb-md-0">
+                <CInputGroup>
+                  <CInputGroupText className="bg-light">
+                    <CIcon icon={cilSearch} />
+                  </CInputGroupText>
+                  <CFormInput
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border-start-0"
+                  />
+                </CInputGroup>
+              </CCol>
+              <CCol md={3} className="mb-3 mb-md-0">
+                <CDropdown>
+                  <CDropdownToggle color="light" className="w-100">
+                    Filter by Status: {statusFilter}
+                  </CDropdownToggle>
+                  <CDropdownMenu>
+                    <CDropdownItem onClick={() => setStatusFilter('All')}>All</CDropdownItem>
+                    <CDropdownItem onClick={() => setStatusFilter('Active')}>Active</CDropdownItem>
+                    <CDropdownItem onClick={() => setStatusFilter('Inactive')}>
+                      Inactive
+                    </CDropdownItem>
+                  </CDropdownMenu>
+                </CDropdown>
+              </CCol>
+            </CRow>
             <CTable align="middle" className="mb-0 border" hover responsive>
-              <CTableHead color="light">
-                <CTableRow>
-                  <CTableHeaderCell>Name</CTableHeaderCell>
-                  <CTableHeaderCell>Username</CTableHeaderCell>
-                  <CTableHeaderCell>Email</CTableHeaderCell>
-                  <CTableHeaderCell>Role</CTableHeaderCell>
-                  <CTableHeaderCell>Status</CTableHeaderCell>
-                  <CTableHeaderCell>Actions</CTableHeaderCell>
+              <CTableHead>
+                <CTableRow className="bg-light">
+                  <CTableHeaderCell className="text-center">User</CTableHeaderCell>
+                  <CTableHeaderCell>Contact</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Employee ID</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {filteredUsers.map((user) => (
-                  <CTableRow key={user.id}>
-                    <CTableDataCell>{user.name}</CTableDataCell>
-                    <CTableDataCell>{user.username}</CTableDataCell>
-                    <CTableDataCell>{user.email}</CTableDataCell>
-                    <CTableDataCell>{user.role_id}</CTableDataCell>
+                {filteredUsers.map((user, index) => (
+                  <CTableRow key={index} className="align-middle">
                     <CTableDataCell>
-                      <CBadge color={user.status === 'Active' ? 'success' : 'danger'}>
-                        {user.status}
-                      </CBadge>
+                      <div className="d-flex align-items-center">
+                        <CAvatar
+                          color={user.status === 'Active' ? 'primary' : 'secondary'}
+                          size="md"
+                          className="me-3"
+                        >
+                          {user.username ? user.username.charAt(0) : ''}
+                        </CAvatar>
+                        <div>
+                          <div className="fw-semibold">{user.username}</div>
+                        </div>
+                      </div>
                     </CTableDataCell>
                     <CTableDataCell>
-                      <CButton color="primary" size="sm" className="me-2" onClick={() => openModal(user)}>
-                        <CIcon icon={cilPencil} />
-                      </CButton>
-                      <CButton color="danger" size="sm" onClick={() => deleteUser(user.id)}>
-                        <CIcon icon={cilTrash} />
-                      </CButton>
+                      <div>
+                        <CIcon icon={cilEnvelopeClosed} className="me-2 text-muted" />
+                        {user.email}
+                      </div>
+                      <div className="mt-1">
+                        <CIcon icon={cilPhone} className="me-2 text-muted" />
+                        {user.phone}
+                      </div>
+                    </CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      {user.employee_id ? (
+                        <Link to={`/employee/${user.employee_id}`}>{user.employee_id}</Link>
+                      ) : (
+                        'N/A'
+                      )}
+                    </CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      {getStatusBadge(user.status)}
+                    </CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      <CDropdown alignment="end">
+                        <CDropdownToggle color="light" caret={false} className="p-0">
+                          <CIcon icon={cilOptions} />
+                        </CDropdownToggle>
+                        <CDropdownMenu>
+                          <CDropdownItem onClick={() => openModal(user)}>Edit</CDropdownItem>
+                          <CDropdownItem
+                            onClick={() => deleteUser(user.id)}
+                            className="text-danger"
+                          >
+                            Delete
+                          </CDropdownItem>
+                        </CDropdownMenu>
+                      </CDropdown>
                     </CTableDataCell>
                   </CTableRow>
                 ))}
@@ -204,108 +302,92 @@ const UserManagement = () => {
       <CModal visible={showModal} onClose={() => setShowModal(false)}>
         <CForm onSubmit={handleSubmit}>
           <CModalHeader closeButton>
-            <CModalTitle>{currentUser ? 'Edit User' : 'Add New User'}</CModalTitle>
+            <CModalTitle>{currentUser ? 'Edit User' : 'Add User'}</CModalTitle>
           </CModalHeader>
           <CModalBody>
-            <CFormInput
-              className="mb-3"
-              type="text"
-              id="name"
-              name="name"
-              label="Name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-            />
-            <CFormInput
-              className="mb-3"
-              type="email"
-              id="email"
-              name="email"
-              label="Email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-            />
-            <CFormInput
-              className="mb-3"
-              type="password"
-              id="password"
-              name="password"
-              label="Password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required={!currentUser}
-            />
-            <CFormInput
-              className="mb-3"
-              type="tel"
-              id="phone"
-              name="phone"
-              label="Phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-            />
-            <CFormInput
-              className="mb-3"
-              type="text"
-              id="address"
-              name="address"
-              label="Address"
-              value={formData.address}
-              onChange={handleInputChange}
-            />
-            <CFormInput
-              className="mb-3"
-              type="text"
-              id="preferences"
-              name="preferences"
-              label="Preferences"
-              value={formData.preferences}
-              onChange={handleInputChange}
-            />
-            <CFormInput
-              className="mb-3"
-              type="text"
-              id="username"
-              name="username"
-              label="Username"
-              value={formData.username}
-              onChange={handleInputChange}
-              required
-            />
-            <CFormSelect
-              className="mb-3"
-              id="role_id"
-              name="role_id"
-              label="Role"
-              value={formData.role_id}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select a role</option>
-              <option value="1">Admin</option>
-              <option value="2">User</option>
-            </CFormSelect>
-            <CFormSelect
-              className="mb-3"
-              id="status"
-              name="status"
-              label="Status"
-              value={formData.status}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </CFormSelect>
+            <CRow>
+              <CCol md={6}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="username">Username</CFormLabel>
+                  <CFormInput
+                    id="username"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </CCol>
+              <CCol md={6}>
+                <div className="mb-3">
+                  <CFormLabel htmlFor="email">Email</CFormLabel>
+                  <CFormInput
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </CCol>
+            </CRow>
+            <div className="mb-3">
+              <CFormLabel htmlFor="phone">Phone</CFormLabel>
+              <CFormInput
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="preferences">Preferences</CFormLabel>
+              <CFormInput
+                id="preferences"
+                name="preferences"
+                value={formData.preferences}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="role_id">Role ID</CFormLabel>
+              <CFormInput
+                id="role_id"
+                name="role_id"
+                value={formData.role_id}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="employee_id">Employee ID</CFormLabel>
+              <CFormInput
+                id="employee_id"
+                name="employee_id"
+                value={formData.employee_id || ''}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="status">Status</CFormLabel>
+              <CFormSelect
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </CFormSelect>
+            </div>
           </CModalBody>
           <CModalFooter>
             <CButton color="secondary" onClick={() => setShowModal(false)}>
               Close
             </CButton>
             <CButton color="primary" type="submit">
-              {currentUser ? 'Update' : 'Create'} User
+              {currentUser ? 'Update' : 'Add'} User
             </CButton>
           </CModalFooter>
         </CForm>
@@ -314,4 +396,4 @@ const UserManagement = () => {
   )
 }
 
-export default UserManagement
+export default Users

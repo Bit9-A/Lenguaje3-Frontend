@@ -16,12 +16,13 @@ import {
 import CIcon from '@coreui/icons-react';
 import { cilLockLocked, cilUser, cilHome } from '@coreui/icons';
 import { helpHttp } from '../../../helpers/helpHTTP';
+import { baseUrl } from '../../../config' // Importar baseUrl
+
 
 const api = helpHttp();
-const baseUrl = 'http://localhost:5000';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
@@ -38,20 +39,17 @@ const Login = () => {
     setErrorMessage('');
 
     try {
-      const usersRes = await api.get(`${baseUrl}/users`);
+      const loginRes = await api.post(`${baseUrl}/login`, {
+        body: { email, password },
+      });
 
-      if (!usersRes.err) {
-        const user = usersRes.find(user => user.username === username && user.password === password);
-
-        if (user) {
-          console.log('Login successful:', user);
-          localStorage.setItem('user', JSON.stringify(user));
-          navigate('/dashboard');
-        } else {
-          setErrorMessage('Invalid username or password');
-        }
+      if (!loginRes.err) {
+        console.log('Login successful:', loginRes);
+        localStorage.setItem('user', JSON.stringify(loginRes.user));
+        localStorage.setItem('token', loginRes.token);
+        navigate('/dashboard');
       } else {
-        setErrorMessage('Error fetching user data');
+        setErrorMessage(loginRes.message || 'Invalid email or password');
       }
     } catch (error) {
       setErrorMessage('An unexpected error occurred.');
@@ -75,10 +73,10 @@ const Login = () => {
                         <CIcon icon={cilUser} />
                       </CInputGroupText>
                       <CFormInput
-                        placeholder="Username"
-                        autoComplete="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                       />
                     </CInputGroup>
                     <CInputGroup className="mb-4">
@@ -100,9 +98,9 @@ const Login = () => {
                         </CButton>
                       </CCol>
                       <CCol xs={6} className="text-right">
-                        <CButton color="link" className="px-0">
+                        <Link to="/forgot-password"><CButton color="link" className="px-0">
                           Forgot password?
-                        </CButton>
+                        </CButton></Link>
                       </CCol>
                     </CRow>
                   </CForm>

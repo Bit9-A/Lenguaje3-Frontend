@@ -1,522 +1,429 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
   CCard,
   CCardBody,
   CCardHeader,
   CCol,
   CRow,
-  CTable,
-  CTableBody,
-  CTableDataCell,
-  CTableHead,
-  CTableHeaderCell,
-  CTableRow,
   CButton,
-  CBadge,
-  CDropdown,
-  CDropdownToggle,
-  CDropdownMenu,
-  CDropdownItem,
+  CAlert,
+  CSpinner,
   CModal,
   CModalHeader,
   CModalTitle,
   CModalBody,
-  CModalFooter,
-  CForm,
-  CFormInput,
-  CFormSelect,
-  CFormTextarea,
-  CAvatar,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilOptions, cilPlus, cilPencil, cilTrash, cilList, cilUser, cilCalendar, cilDollar } from '@coreui/icons'
-import { helpHttp } from '../../../helpers/helpHTTP'
+  CModalFooter
+} from '@coreui/react';
+import CIcon from '@coreui/icons-react';
+import { cilPlus, cilBuilding } from '@coreui/icons';
+import { helpHttp } from '../../../helpers/helpHTTP';
+import { baseUrl } from '../../../config';
+import ProjectDetails from './ProjectManage/ProjectDetails';
+import ProjectForm from './ProjectManage/ProjectForm';
+import ProjectList from './ProjectManage/ProjectList';
 
 const ProjectManagement = () => {
-  const [projects, setProjects] = useState([])
-  const [proposals, setProposals] = useState([])
-  const [services, setServices] = useState([])
-  const [projectServices, setProjectServices] = useState([])
-  const [clients, setClients] = useState([])
-  const [showServicesModal, setShowServicesModal] = useState(false)
-  const [showNewProjectModal, setShowNewProjectModal] = useState(false)
-  const [showEditProjectModal, setShowEditProjectModal] = useState(false)
-  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
-  const [selectedProject, setSelectedProject] = useState(null)
-  const [newService, setNewService] = useState({ service_id: '', status: 'In Progress', is_paid: false })
-  const [editingProject, setEditingProject] = useState(null)
+  const [projects, setProjects] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [services, setServices] = useState([]);
+  const [availableEmployees, setAvailableEmployees] = useState([]);
+  const [availableMaterials, setAvailableMaterials] = useState([]);
+  const [availableServices, setAvailableServices] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [clients, setClients] = useState([]);
+  const [editingMaterial, setEditingMaterial] = useState(null);
+  const [materialQuantity, setMaterialQuantity] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [newProject, setNewProject] = useState({
+    name: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    client_id: '',
+    status: 'Planning'
+  });
 
-  const api = helpHttp()
-  const baseUrl = 'http://localhost:5000'
+  const api = helpHttp();
 
   useEffect(() => {
-    fetchProjects()
-    fetchProposals()
-    fetchServices()
-    fetchProjectServices()
-    fetchClients()
-  }, [])
+    fetchProjects();
+    fetchAvailableResources();
+    fetchClients();
+  }, []);
 
   const fetchProjects = async () => {
-    const response = await api.get(`${baseUrl}/projects`)
-    if (!response.err) {
-      setProjects(response)
-    } else {
-      console.error('Error fetching projects:', response.err)
+    setLoading(true);
+    try {
+      const response = await api.get(`${baseUrl}/projects`);
+      if (!response.err) {
+        setProjects(response);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error fetching projects:');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const fetchProposals = async () => {
-    const response = await api.get(`${baseUrl}/client_proposals`)
-    if (!response.err) {
-      setProposals(response.filter(proposal => proposal.status === 'Pending'))
-    } else {
-      console.error('Error fetching proposals:', response.err)
-    }
-  }
+  const fetchAvailableResources = async () => {
+    try {
+      const employeesResponse = await api.get(`${baseUrl}/employees`);
+      const materialsResponse = await api.get(`${baseUrl}/materials`);
+      const servicesResponse = await api.get(`${baseUrl}/services`);
 
-  const fetchServices = async () => {
-    const response = await api.get(`${baseUrl}/services`)
-    if (!response.err) {
-      setServices(response)
-    } else {
-      console.error('Error fetching services:', response.err)
+      if (!employeesResponse.err) setAvailableEmployees(employeesResponse);
+      if (!materialsResponse.err) setAvailableMaterials(materialsResponse);
+      if (!servicesResponse.err) setAvailableServices(servicesResponse);
+    } catch (err) {
+      handleApiError(err, 'Error fetching resources:');
     }
-  }
-
-  const fetchProjectServices = async () => {
-    const response = await api.get(`${baseUrl}/project_services`)
-    if (!response.err) {
-      setProjectServices(response)
-    } else {
-      console.error('Error fetching project services:', response.err)
-    }
-  }
+  };
 
   const fetchClients = async () => {
-    const response = await api.get(`${baseUrl}/clients`)
-    if (!response.err) {
-      setClients(response)
-    } else {
-      console.error('Error fetching clients:', response.err)
-    }
-  }
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'In Progress':
-        return <CBadge color="primary">{status}</CBadge>
-      case 'Completed':
-        return <CBadge color="success">{status}</CBadge>
-      case 'Planning':
-        return <CBadge color="warning">{status}</CBadge>
-      default:
-        return <CBadge color="secondary">{status}</CBadge>
-    }
-  }
-
-  const openServicesModal = (project) => {
-    setSelectedProject(project)
-    setShowServicesModal(true)
-  }
-
-  const closeServicesModal = () => {
-    setSelectedProject(null)
-    setShowServicesModal(false)
-    setNewService({ service_id: '', status: 'In Progress', is_paid: false })
-  }
-
-  const addService = async () => {
-    if (newService.service_id && selectedProject) {
-      const newProjectService = {
-        project_id: selectedProject.id,
-        service_id: parseInt(newService.service_id),
-        is_paid: newService.is_paid,
-        status: newService.status,
-        end_date: null
-      }
-      const response = await api.post(`${baseUrl}/project_services`, { body: newProjectService })
+    try {
+      const response = await api.get(`${baseUrl}/clients`);
       if (!response.err) {
-        fetchProjectServices()
-        setNewService({ service_id: '', status: 'In Progress', is_paid: false })
+        setClients(response);
       } else {
-        console.error('Error adding service:', response.err)
+        throw new Error(response.err);
       }
+    } catch (err) {
+      handleApiError(err, 'Error fetching clients:');
     }
-  }
+  };
 
-  const updateServiceStatus = async (projectServiceId, newStatus) => {
-    const projectService = projectServices.find(ps => ps.id === projectServiceId)
-    if (projectService) {
-      const updatedProjectService = { ...projectService, status: newStatus }
-      const response = await api.put(`${baseUrl}/project_services/${projectServiceId}`, { body: updatedProjectService })
-      if (!response.err) {
-        fetchProjectServices()
-      } else {
-        console.error('Error updating service status:', response.err)
-      }
+  const fetchProjectDetails = async (projectId) => {
+    setLoading(true);
+    try {
+      const employeesResponse = await api.get(`${baseUrl}/projects/${projectId}/employees`);
+      const materialsResponse = await api.get(`${baseUrl}/projects/${projectId}/materials`);
+      const servicesResponse = await api.get(`${baseUrl}/projects/${projectId}/services`);
+
+      if (!employeesResponse.err) setEmployees(employeesResponse);
+      if (!materialsResponse.err) setMaterials(materialsResponse);
+      if (!servicesResponse.err) setServices(servicesResponse);
+    } catch (err) {
+      handleApiError(err, 'Error fetching project details:');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const openNewProjectModal = () => {
-    setShowNewProjectModal(true)
-  }
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
 
-  const closeNewProjectModal = () => {
-    setShowNewProjectModal(false)
-  }
+  const handleUpload = async () => {
+    try {
+      if (!selectedFile || !selectedProject) return;
 
-  const createNewProject = async (proposal) => {
-    const newProject = {
-      name: proposal.proposal_description,
-      description: proposal.proposal_description,
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: null,
-      status: 'Planning',
-      proposal_id: proposal.id,
-      is_paid: false
-    }
-    const response = await api.post(`${baseUrl}/projects`, { body: newProject })
-    if (!response.err) {
-      const updatedProposal = { ...proposal, status: 'Accepted' }
-      await api.put(`${baseUrl}/client_proposals/${proposal.id}`, { body: updatedProposal })
+      const formData = new FormData();
+      formData.append('photo', selectedFile);
+      formData.append('project_id', selectedProject.id);
       
-      // Update client status
-      const client = clients.find(c => c.id === proposal.client_id)
-      if (client) {
-        const updatedClient = { ...client, status: 'Activo' }
-        await api.put(`${baseUrl}/clients/${client.id}`, { body: updatedClient })
-      }
-      
-      fetchProjects()
-      fetchProposals()
-      fetchClients()
-      closeNewProjectModal()
-    } else {
-      console.error('Error creating new project:', response.err)
-    }
-  }
+      const response = await api.post(`${baseUrl}/projects/photos`, { 
+        body: formData,
+        headers: {
+          'Content-Type': undefined 
+        }
+      });
 
-  const openEditProjectModal = (project) => {
-    setEditingProject({ ...project })
-    setShowEditProjectModal(true)
-  }
-
-  const closeEditProjectModal = () => {
-    setEditingProject(null)
-    setShowEditProjectModal(false)
-  }
-
-  const saveEditedProject = async () => {
-    if (editingProject) {
-      const response = await api.put(`${baseUrl}/projects/${editingProject.id}`, { body: editingProject })
       if (!response.err) {
-        fetchProjects()
-        closeEditProjectModal()
+        fetchProjectDetails(selectedProject.id);
+        setSelectedFile(null);
       } else {
-        console.error('Error updating project:', response.err)
+        throw new Error(response.err);
       }
+    } catch (err) {
+      handleApiError(err, 'Error uploading file:');
     }
-  }
+  };
 
-  const openDeleteConfirmModal = (project) => {
-    setSelectedProject(project)
-    setShowDeleteConfirmModal(true)
-  }
+  const handleAddEmployee = async (employeeId) => {
+    try {
+      const response = await api.post(`${baseUrl}/projects/employees`, {
+        body: {
+          project_id: selectedProject.id,
+          employee_id: employeeId
+        }
+      });
 
-  const closeDeleteConfirmModal = () => {
-    setSelectedProject(null)
-    setShowDeleteConfirmModal(false)
-  }
-
-  const deleteProject = async () => {
-    if (selectedProject) {
-      const response = await api.del(`${baseUrl}/projects/${selectedProject.id}`)
       if (!response.err) {
-        fetchProjects()
-        closeDeleteConfirmModal()
+        fetchProjectDetails(selectedProject.id);
       } else {
-        console.error('Error deleting project:', response.err)
+        throw new Error(response.err);
       }
+    } catch (err) {
+      handleApiError(err, 'Error adding employee:');
     }
-  }
+  };
 
-  const getServiceName = (serviceId) => {
-    const service = services.find(s => s.id === serviceId.toString())
-    return service ? service.name : 'Unknown Service'
-  }
+  const handleRemoveEmployee = async (employeeId) => {
+    try {
+      const response = await api.del(`${baseUrl}/projects/employees/${selectedProject.id}/${employeeId}`);
+      if (!response.err) {
+        fetchProjectDetails(selectedProject.id);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error removing employee:');
+    }
+  };
+
+  const handleAddMaterial = async (materialId, quantity) => {
+    try {
+      const response = await api.post(`${baseUrl}/projects/materials`, {
+        body: {
+          project_id: selectedProject.id,
+          material_id: materialId,
+          quantity
+        }
+      });
+
+      if (!response.err) {
+        fetchProjectDetails(selectedProject.id);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error adding material:');
+    }
+  };
+
+  const handleRemoveMaterial = async (materialId) => {
+    try {
+      const response = await api.del(`${baseUrl}/projects/materials/${selectedProject.id}/${materialId}`);
+      if (!response.err) {
+        fetchProjectDetails(selectedProject.id);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error removing material:');
+    }
+  };
+
+  const handleAddService = async (serviceId) => {
+    try {
+      const response = await api.post(`${baseUrl}/projects/services`, {
+        body: {
+          project_id: selectedProject.id,
+          service_id: serviceId,
+          status: 'Pending'
+        }
+      });
+
+      if (!response.err) {
+        fetchProjectDetails(selectedProject.id);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error adding service:');
+    }
+  };
+
+  const handleRemoveService = async (serviceId) => {
+    try {
+      const response = await api.del(`${baseUrl}/projects/services/${selectedProject.id}/${serviceId}`);
+      if (!response.err) {
+        fetchProjectDetails(selectedProject.id);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error removing service:');
+    }
+  };
+
+  const handleProjectClick = async (project) => {
+    setSelectedProject(project);
+    await fetchProjectDetails(project.id);
+    setShowModal(true);
+    setModalType('details');
+  };
 
   const getClientName = (clientId) => {
-    const client = clients.find(c => c.id === clientId)
-    return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client'
-  }
+    const client = clients.find(c => c.id === clientId);
+    return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client';
+  };
+
+  const handleUpdateMaterialQuantity = async (materialId, quantity) => {
+    try {
+      const response = await api.put(`${baseUrl}/projects/materials/${selectedProject.id}/${materialId}`, {
+        body: { quantity: parseInt(quantity) }
+      });
+      if (!response.err) {
+        fetchProjectDetails(selectedProject.id);
+        setEditingMaterial(null);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error updating material quantity:');
+    }
+  };
+
+  const handleRemovePhoto = async (photoId) => {
+    try {
+      const response = await api.del(`${baseUrl}/projects/photos/${photoId}`);
+      if (!response.err) {
+        fetchProjectDetails(selectedProject.id);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error removing photo:');
+    }
+  };
+
+  const handleApiError = (error, message) => {
+    console.error(message, error);
+    setError(`${message} Please try again later.`);
+  };
+
+  const handleCreateProject = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await api.post(`${baseUrl}/projects`, { body: newProject });
+      if (!response.err) {
+        fetchProjects();
+        setShowModal(false);
+        setNewProject({
+          name: '',
+          description: '',
+          start_date: '',
+          end_date: '',
+          client_id: '',
+          status: 'Planning'
+        });
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error creating project:');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProject = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await api.put(`${baseUrl}/projects/${selectedProject.id}`, { body: selectedProject });
+      if (!response.err) {
+        fetchProjects();
+        setShowModal(false);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      handleApiError(err, 'Error updating project:');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <CRow>
       <CCol xs={12}>
-        <CCard className="mb-4">
+        {error && (
+          <CAlert color="danger" dismissible onClose={() => setError(null)}>
+            {error}
+          </CAlert>
+        )}
+        <CCard>
           <CCardHeader>
-            <strong>Project Management for Remodeling</strong>
-            <CButton color="primary" className="float-end" onClick={openNewProjectModal}>
-              <CIcon icon={cilPlus} /> New Project
-            </CButton>
+            <CRow className="align-items-center">
+              <CCol>
+                <h4>Project Management</h4>
+              </CCol>
+              <CCol className="text-end">
+                <CButton color="primary" onClick={() => { setShowModal(true); setModalType('add'); }}>
+                  <CIcon icon={cilPlus} className="me-2" /> Add Project
+                </CButton>
+              </CCol>
+            </CRow>
           </CCardHeader>
           <CCardBody>
-            <CTable align="middle" className="mb-0 border" hover responsive>
-              <CTableHead color="light">
-                <CTableRow>
-                  <CTableHeaderCell>Project Name</CTableHeaderCell>
-                  <CTableHeaderCell>Start Date</CTableHeaderCell>
-                  <CTableHeaderCell>End Date</CTableHeaderCell>
-                  <CTableHeaderCell>Status</CTableHeaderCell>
-                  <CTableHeaderCell>Actions</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {projects.map((project) => (
-                  <CTableRow key={project.id}>
-                    <CTableDataCell>
-                      <div>{project.name}</div>
-                    </CTableDataCell>
-                    <CTableDataCell>{project.start_date}</CTableDataCell>
-                    <CTableDataCell>{project.end_date || 'Not set'}</CTableDataCell>
-                    <CTableDataCell>{getStatusBadge(project.status)}</CTableDataCell>
-                    <CTableDataCell>
-                      <CDropdown alignment="end">
-                        <CDropdownToggle color="transparent" caret={false} className="p-0">
-                          <CIcon icon={cilOptions} />
-                        </CDropdownToggle>
-                        <CDropdownMenu>
-                          <CDropdownItem onClick={() => openServicesModal(project)}>
-                            <CIcon icon={cilList} /> Manage Services
-                          </CDropdownItem>
-                          <CDropdownItem onClick={() => openEditProjectModal(project)}>
-                            <CIcon icon={cilPencil} /> Edit
-                          </CDropdownItem>
-                          <CDropdownItem onClick={() => openDeleteConfirmModal(project)}>
-                            <CIcon icon={cilTrash} /> Delete
-                          </CDropdownItem>
-                        </CDropdownMenu>
-                      </CDropdown>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
+            {loading ? (
+              <div className="text-center">
+                <CSpinner color="primary" />
+              </div>
+            ) : (
+              <ProjectList
+                projects={projects}
+                getClientName={getClientName}
+                handleProjectClick={handleProjectClick}
+                setSelectedProject={setSelectedProject}
+                setShowModal={setShowModal}
+                setModalType={setModalType}
+              />
+            )}
           </CCardBody>
         </CCard>
       </CCol>
 
-      {/* Services Modal */}
-      <CModal visible={showServicesModal} onClose={closeServicesModal}>
-        <CModalHeader closeButton>
-          <CModalTitle>Manage Services for {selectedProject?.name}</CModalTitle>
+      <CModal visible={showModal} onClose={() => setShowModal(false)}>
+        <CModalHeader onClose={() => setShowModal(false)}>
+          <CModalTitle>{modalType === 'add' ? 'Add Project' : modalType === 'edit' ? 'Edit Project' : 'Project Details'}</CModalTitle>
         </CModalHeader>
         <CModalBody>
-          <CTable align="middle" className="mb-0 border" hover responsive>
-            <CTableHead color="light">
-              <CTableRow>
-                <CTableHeaderCell>Service Name</CTableHeaderCell>
-                <CTableHeaderCell>Status</CTableHeaderCell>
-                <CTableHeaderCell>Is Paid</CTableHeaderCell>
-                <CTableHeaderCell>Actions</CTableHeaderCell>
-              </CTableRow>
-            </CTableHead>
-            <CTableBody>
-              {projectServices
-                .filter(ps => ps.project_id === selectedProject?.id)
-                .map((projectService) => (
-                  <CTableRow key={projectService.id}>
-                    <CTableDataCell>{getServiceName(projectService.service_id)}</CTableDataCell>
-                    <CTableDataCell>{getStatusBadge(projectService.status)}</CTableDataCell>
-                    <CTableDataCell>{projectService.is_paid ? 'Yes' : 'No'}</CTableDataCell>
-                    <CTableDataCell>
-                      <CDropdown>
-                        <CDropdownToggle color="secondary">Update Status</CDropdownToggle>
-                        <CDropdownMenu>
-                          <CDropdownItem onClick={() => updateServiceStatus(projectService.id, 'In Progress')}>
-                            In Progress
-                          </CDropdownItem>
-                          <CDropdownItem onClick={() => updateServiceStatus(projectService.id, 'Completed')}>
-                            Completed
-                          </CDropdownItem>
-                        </CDropdownMenu>
-                      </CDropdown>
-                    </CTableDataCell>
-                  </CTableRow>
-                ))}
-            </CTableBody>
-          </CTable>
-          <CForm className="mt-3">
-            <CFormSelect
-              id="newServiceId"
-              label="New Service"
-              value={newService.service_id}
-              onChange={(e) => setNewService({ ...newService, service_id: e.target.value })}
-            >
-              <option value="">Select a service</option>
-              {services.map(service => (
-                <option key={service.id} value={service.id}>{service.name}</option>
-              ))}
-            </CFormSelect>
-            <CFormSelect
-              id="newServiceStatus"
-              label="Status"
-              className="mt-2"
-              value={newService.status}
-              onChange={(e) => setNewService({ ...newService, status: e.target.value })}
-            >
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-            </CFormSelect>
-            <CFormSelect
-              id="newServiceIsPaid"
-              label="Is Paid"
-              className="mt-2"
-              value={newService.is_paid.toString()}
-              onChange={(e) => setNewService({ ...newService, is_paid: e.target.value === 'true' })}
-            >
-              <option value="false">No</option>
-              <option value="true">Yes</option>
-            </CFormSelect>
-            <CButton color="primary" onClick={addService} className="mt-3">
-              Add Service
-            </CButton>
-          </CForm>
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" onClick={closeServicesModal}>
-            Close
-          </CButton>
-        </CModalFooter>
-      </CModal>
-
-      {/* New Project Modal */}
-      <CModal visible={showNewProjectModal} onClose={closeNewProjectModal} size="lg">
-        <CModalHeader closeButton>
-          <CModalTitle>Create New Project</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <h5>Select a pending proposal to create a new project:</h5>
-          {proposals.map((proposal) => (
-            <CCard key={proposal.id} className="mb-3">
-              <CCardBody>
-                <div className="d-flex align-items-center mb-3">
-                  <CAvatar color="primary" size="md" className="me-3">
-                    {getClientName(proposal.client_id).charAt(0)}
-                  </CAvatar>
-                  <div>
-                    <h6 className="mb-0">{proposal.proposal_description}</h6>
-                    <small className="text-medium-emphasis">{getClientName(proposal.client_id)}</small>
-                  </div>
-                </div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div>
-                    <CIcon icon={cilCalendar} className="me-2 text-muted" />
-                    <span>{proposal.proposal_date}</span>
-                  </div>
-                  <div>
-                    <CIcon icon={cilDollar} className="me-2 text-muted" />
-                    <span>Budget Type: {proposal.budget_type_id}</span>
-                  </div>
-                </div>
-                <CButton color="primary" onClick={() => createNewProject(proposal)}>
-                  Accept and Create Project
-                </CButton>
-              </CCardBody>
-            </CCard>
-          ))}
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" onClick={closeNewProjectModal}>
-            Close
-          </CButton>
-        </CModalFooter>
-      </CModal>
-
-      {/* Edit Project Modal */}
-      <CModal visible={showEditProjectModal} onClose={closeEditProjectModal}>
-        <CModalHeader closeButton>
-          <CModalTitle>Edit Project</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          {editingProject && (
-            <CForm>
-              <CFormInput
-                type="text"
-                id="editProjectName"
-                label="Project Name"
-                value={editingProject.name}
-                onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })}
-                className="mb-3"
-              />
-              <CFormInput
-                type="date"
-                id="editProjectStartDate"
-                label="Start Date"
-                value={editingProject.start_date}
-                onChange={(e) => setEditingProject({ ...editingProject, start_date: e.target.value })}
-                className="mb-3"
-              />
-              <CFormInput
-                type="date"
-                id="editProjectEndDate"
-                label="End Date"
-                value={editingProject.end_date || ''}
-                onChange={(e) => setEditingProject({ ...editingProject, end_date: e.target.value })}
-                className="mb-3"
-              />
-              <CFormSelect
-                id="editProjectStatus"
-                label="Status"
-                value={editingProject.status}
-                onChange={(e) => setEditingProject({ ...editingProject, status: e.target.value })}
-                className="mb-3"
-              >
-                <option value="Planning">Planning</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-              </CFormSelect>
-              <CFormTextarea
-                id="editProjectDescription"
-                label="Description"
-                rows="3"
-                value={editingProject.description}
-                onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
-                className="mb-3"
-              />
-            </CForm>
+          {modalType === 'details' ? (
+            <ProjectDetails
+              project={selectedProject}
+              employees={employees}
+              materials={materials}
+              services={services}
+              availableEmployees={availableEmployees}
+              availableMaterials={availableMaterials}
+              availableServices={availableServices}
+              handleAddEmployee={handleAddEmployee}
+              handleRemoveEmployee={handleRemoveEmployee}
+              handleAddMaterial={handleAddMaterial}
+              handleRemoveMaterial={handleRemoveMaterial}
+              handleAddService={handleAddService}
+              handleRemoveService={handleRemoveService}
+              handleFileChange={handleFileChange}
+              handleUpload={handleUpload}
+              handleUpdateMaterialQuantity={handleUpdateMaterialQuantity}
+              handleRemovePhoto={handleRemovePhoto}
+              editingMaterial={editingMaterial}
+              setEditingMaterial={setEditingMaterial}
+              materialQuantity={materialQuantity}
+              setMaterialQuantity={setMaterialQuantity}
+            />
+          ) : (
+            <ProjectForm
+              modalType={modalType}
+              newProject={newProject}
+              selectedProject={selectedProject}
+              clients={clients}
+              handleCreateProject={handleCreateProject}
+              handleUpdateProject={handleUpdateProject}
+              setNewProject={setNewProject}
+              setSelectedProject={setSelectedProject}
+            />
           )}
         </CModalBody>
         <CModalFooter>
-          <CButton color="primary" onClick={saveEditedProject}>
-            Save Changes
-          </CButton>
-          <CButton color="secondary" onClick={closeEditProjectModal}>
-            Cancel
-          </CButton>
-        </CModalFooter>
-      </CModal>
-
-      {/* Delete Confirm Modal */}
-      <CModal visible={showDeleteConfirmModal} onClose={closeDeleteConfirmModal}>
-        <CModalHeader closeButton>
-          <CModalTitle>Confirm Delete</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          Are you sure you want to delete the project "{selectedProject?.name}"?
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="danger" onClick={deleteProject}>
-            Delete
-          </CButton>
-          <CButton color="secondary" onClick={closeDeleteConfirmModal}>
-            Cancel
+          <CButton color="secondary" onClick={() => setShowModal(false)}>
+            Close
           </CButton>
         </CModalFooter>
       </CModal>
     </CRow>
-  )
-}
+  );
+};
 
-export default ProjectManagement
+export default ProjectManagement;

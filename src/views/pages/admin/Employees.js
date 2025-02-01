@@ -40,8 +40,7 @@ import {
   cilPlus,
 } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
-
-const API_URL = 'http://localhost:5000/employees'
+import { baseUrl } from '../../../config' // Importar baseUrl
 
 const Employees = () => {
   const [employees, setEmployees] = useState([])
@@ -59,18 +58,19 @@ const Employees = () => {
     projects: 0,
     hireDate: '',
   })
-  let api = helpHttp()
-  let url = 'http://localhost:5000/employees'
+  const api = helpHttp()
 
   useEffect(() => {
-    api.get(url).then((res) => {
-      console.log(res)
-      if (!res.err) {
-        setEmployees(res)
+    const fetchData = async () => {
+      const employeesRes = await api.get(`${baseUrl}/employees`)
+      if (!employeesRes.err) {
+        setEmployees(employeesRes)
       } else {
         setEmployees(null)
       }
-    })
+    }
+
+    fetchData()
   }, [])
 
   const handleInputChange = (e) => {
@@ -97,18 +97,17 @@ const Employees = () => {
       projects: 0,
       hireDate: '',
     })
-    api.get(url).then((res) => {
-      if (!res.err) {
-        setEmployees(res)
-      } else {
-        setEmployees(null)
-      }
-    })
+    const employeesRes = await api.get(`${baseUrl}/employees`)
+    if (!employeesRes.err) {
+      setEmployees(employeesRes)
+    } else {
+      setEmployees(null)
+    }
   }
 
   const addEmployee = async (employee) => {
     try {
-      await api.post(url, { body: employee })
+      await api.post(`${baseUrl}/employees`, { body: employee })
     } catch (error) {
       console.error('Error adding employee:', error)
     }
@@ -116,7 +115,7 @@ const Employees = () => {
 
   const updateEmployee = async (id, employee) => {
     try {
-      await api.put(`${url}/${id}`, { body: employee })
+      await api.put(`${baseUrl}/employees/${id}`, { body: employee })
     } catch (error) {
       console.error('Error updating employee:', error)
     }
@@ -125,14 +124,13 @@ const Employees = () => {
   const deleteEmployee = async (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        await api.del(`${url}/${id}`)
-        api.get(url).then((res) => {
-          if (!res.err) {
-            setEmployees(res)
-          } else {
-            setEmployees(null)
-          }
-        })
+        await api.del(`${baseUrl}/employees/${id}`)
+        const employeesRes = await api.get(`${baseUrl}/employees`)
+        if (!employeesRes.err) {
+          setEmployees(employeesRes)
+        } else {
+          setEmployees(null)
+        }
       } catch (error) {
         console.error('Error deleting employee:', error)
       }

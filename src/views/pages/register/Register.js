@@ -13,6 +13,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
+import { baseUrl } from '../../../config' // Importar baseUrl
 
 const Register = () => {
   return (
