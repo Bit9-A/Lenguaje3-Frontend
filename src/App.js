@@ -6,13 +6,12 @@ import { useSelector } from 'react-redux'
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
 import Dashboard from './views/dashboard/Dashboard'
-<<<<<<< HEAD
+
 import ForgotPassword from './views/pages/forgot-password/forgot-password'
 import ResetPassword from './views/pages/forgot-password/reset-password'
 const HomePage = React.lazy(()=>import('./views/pages/home/homepage'))
-=======
-const HomePage = React.lazy(() => import('./views/pages/home/homepage'))
->>>>>>> a29b97ece4bb8a14dbda49e871bb429b0d4250cf
+
+
 
 // Containersa
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
