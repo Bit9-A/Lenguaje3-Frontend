@@ -16,8 +16,7 @@ import {
 import CIcon from '@coreui/icons-react';
 import { cilLockLocked, cilUser, cilHome } from '@coreui/icons';
 import { helpHttp } from '../../../helpers/helpHTTP';
-import { baseUrl } from '../../../config' // Importar baseUrl
-
+import { baseUrl } from '../../../config'; // Importar baseUrl
 
 const api = helpHttp();
 
@@ -112,13 +111,8 @@ const Login = () => {
                     <CIcon icon={cilHome} size="3xl" className="mb-4" />
                     <h2>Transform Your Space</h2>
                     <p className="mb-4">
-                      Join Ruigarc and bring your remodeling dreams to life. Create an account to get started on your next project.
+                      Join Ruigarc and bring your remodeling dreams to life.
                     </p>
-                    <Link to="/register">
-                      <CButton color="light" className="mt-3" active tabIndex={-1}>
-                        Sign Up Now
-                      </CButton>
-                    </Link>
                   </div>
                 </CCardBody>
               </CCard>

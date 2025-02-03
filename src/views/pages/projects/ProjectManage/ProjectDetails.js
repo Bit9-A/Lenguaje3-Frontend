@@ -1,50 +1,132 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import {
-  CRow,
-  CCol,
   CCard,
   CCardBody,
-  CCardHeader,
-  CTable,
-  CTableHead,
-  CTableBody,
-  CTableRow,
-  CTableHeaderCell,
-  CTableDataCell,
+  CCol,
+  CRow,
   CButton,
-  CBadge,
-  CTooltip,
   CAvatar,
-  CFormInput,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-
+  CTooltip,
+} from '@coreui/react';
+import CIcon from '@coreui/icons-react';
 import {
   cilUser,
   cilPeople,
-  cilCart,
   cilPlus,
-  cilTrash,
-  cilCloudUpload,
-} from '@coreui/icons'
+} from '@coreui/icons';
+import { helpHttp } from '../../../../helpers/helpHTTP';
+import { baseUrl } from '../../../../config';
+import EmployeeList from '../../../../components/projectsComponents/EmployeeList';
+import Services from '../../../../components/projectsComponents/ServicesList';
+import Materials from '../../../../components/projectsComponents/MaterialsList';
+import Photos from '../../../../components/projectsComponents/PhotoList';
+
+const api = helpHttp();
 
 const ProjectDetails = ({
-  selectedProject,
-  employees,
-  materials,
-  services,
-  getClientName,
-  editingMaterial,
-  materialQuantity,
-  handleUpdateMaterialQuantity,
-  handleRemoveMaterial,
-  handleRemoveService,
-  handleRemovePhoto,
-  handleFileChange,
-  setModalType,
+  project,
+  availableEmployees,
+  availableMaterials,
+  availableServices,
   setEditingMaterial,
   setMaterialQuantity,
+  setSelectedFile,
+  onClose,
 }) => {
+  const [employees, setEmployees] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [services, setServices] = useState([]);
+  const [clientName, setClientName] = useState('Loading...');
+  const [editingMaterial, setEditingMaterialState] = useState(null);
+  const [materialQuantity, setMaterialQuantityState] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showEmployeeList, setShowEmployeeList] = useState(false);
+  const [totalCost, setTotalCost] = useState(0);
+  const [availableMaterialsList, setAvailableMaterialsList] = useState([]);
+
+  useEffect(() => {
+    fetchProjectDetails(project.id);
+    fetchClientName(project.id);
+    fetchTotalMaterialCost(project.id);
+    fetchAvailableMaterials();
+  }, [project.id]);
+
+  const fetchProjectDetails = async (projectId) => {
+    setLoading(true);
+    try {
+      const employeesResponse = await api.get(`${baseUrl}/projects/employees/${projectId}`);
+      const materialsResponse = await api.get(`${baseUrl}/projects/materials/${projectId}`);
+      const servicesResponse = await api.get(`${baseUrl}/projects/services/${projectId}`);
+
+      if (!employeesResponse.err) setEmployees(employeesResponse);
+      if (!materialsResponse.err) setMaterials(materialsResponse);
+      if (!servicesResponse.err) setServices(servicesResponse);
+    } catch (err) {
+      setError('Error fetching project details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchClientName = async (projectId) => {
+    try {
+      const response = await api.get(`${baseUrl}/projects/client-name/${projectId}`);
+      if (!response.err) {
+        setClientName(response.client_name);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      setError('Error fetching client name');
+      setClientName('Unknown Client');
+    }
+  };
+
+  const fetchTotalMaterialCost = async (projectId) => {
+    try {
+      const response = await api.get(`${baseUrl}/projects/total-material-cost/${projectId}`);
+      if (!response.err) {
+        setTotalCost(response.totalCost);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      setError('Error fetching total material cost');
+    }
+  };
+
+  const fetchAvailableMaterials = async () => {
+    try {
+      const response = await api.get(`${baseUrl}/materials`);
+      if (!response.err) {
+        setAvailableMaterialsList(response);
+      } else {
+        throw new Error(response.err);
+      }
+    } catch (err) {
+      setError('Error fetching available materials');
+    }
+  };
+
+  const handleAddEmployee = (employee) => {
+    setEmployees([...employees, employee]);
+    setShowEmployeeList(false);
+  };
+
+  const handleAddMaterial = (material) => {
+    setMaterials([...materials, material]);
+  };
+
+  const handleRemovePhoto = async (photoId) => {
+    try {
+      await api.delete(`${baseUrl}/projects/remove-photo/${photoId}`);
+      fetchProjectDetails(project.id);
+    } catch (err) {
+      setError('Error removing photo');
+    }
+  };
+
   return (
     <div className="project-details">
       <div className="row g-4">
@@ -56,10 +138,10 @@ const ProjectDetails = ({
                 Client Information
               </h6>
               <div className="d-flex align-items-center mb-3">
-                <CAvatar size="xl" src={selectedProject.client_photo || '/placeholder.svg'} className="me-3" />
+                <CAvatar size="xl" src={project.client_photo || '/placeholder.svg'} className="me-3" />
                 <div>
-                  <h5 className="mb-1">{getClientName(selectedProject.client_id)}</h5>
-                  <p className="text-muted mb-0">{selectedProject.client_email}</p>
+                  <h5 className="mb-1">{project.client_name}</h5>
+                  <p className="text-muted mb-0">{project.client_email}</p>
                 </div>
               </div>
             </div>
@@ -82,7 +164,7 @@ const ProjectDetails = ({
                 <CButton 
                   color="light" 
                   className="rounded-circle" 
-                  onClick={() => setModalType('addEmployee')}
+                  onClick={() => setShowEmployeeList(true)}
                 >
                   <CIcon icon={cilPlus} />
                 </CButton>
@@ -92,191 +174,56 @@ const ProjectDetails = ({
         </div>
 
         <div className="col-12">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <h6 className="card-title d-flex align-items-center mb-4">
-                <CIcon icon={cilCart} className="text-primary me-2" />
-                Materials
-              </h6>
-              <div className="table-responsive">
-                <CTable align="middle" className="mb-0" hover>
-                  <CTableHead>
-                    <CTableRow>
-                      <CTableHeaderCell>Material</CTableHeaderCell>
-                      <CTableHeaderCell>Quantity</CTableHeaderCell>
-                      <CTableHeaderCell>Unit</CTableHeaderCell>
-                      <CTableHeaderCell>Actions</CTableHeaderCell>
-                    </CTableRow>
-                  </CTableHead>
-                  <CTableBody>
-                    {materials.map((material) => (
-                      <CTableRow key={material.id}>
-                        <CTableDataCell>
-                          <div className="d-flex align-items-center">
-                            <div className="bg-light p-2 rounded me-2">
-                              <CIcon icon={cilCart} className="text-primary" />
-                            </div>
-                            {material.name}
-                          </div>
-                        </CTableDataCell>
-                        <CTableDataCell>
-                          {editingMaterial === material.id ? (
-                            <CFormInput
-                              type="number"
-                              value={materialQuantity}
-                              onChange={(e) => setMaterialQuantity(e.target.value)}
-                              onBlur={() => handleUpdateMaterialQuantity(material.id, materialQuantity)}
-                              autoFocus
-                            />
-                          ) : (
-                            <span onClick={() => {
-                              setEditingMaterial(material.id)
-                              setMaterialQuantity(material.quantity.toString())
-                            }}>
-                              {material.quantity}
-                            </span>
-                          )}
-                        </CTableDataCell>
-                        <CTableDataCell>{material.unit}</CTableDataCell>
-                        <CTableDataCell>
-                          <CButton 
-                            color="danger" 
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveMaterial(material.id)}
-                          >
-                            <CIcon icon={cilTrash} />
-                          </CButton>
-                        </CTableDataCell>
-                      </CTableRow>
-                    ))}
-                  </CTableBody>
-                </CTable>
-              </div>
-              <CButton 
-                color="primary" 
-                variant="ghost" 
-                className="mt-3"
-                onClick={() => setModalType('addMaterial')}
-              >
-                <CIcon icon={cilPlus} className="me-2" />
-                Add Material
-              </CButton>
-            </div>
-          </div>
+          <Materials
+            projectId={project.id}
+            materials={materials}
+            editingMaterial={editingMaterial}
+            materialQuantity={materialQuantity}
+            setEditingMaterial={setEditingMaterialState}
+            setMaterialQuantity={setMaterialQuantityState}
+            handleUpdateMaterialQuantity={(id, quantity) => {
+              // Implementa la lógica para actualizar la cantidad de material
+            }}
+            handleAddMaterial={handleAddMaterial}
+            handleRemoveMaterial={(id) => {
+              // Implementa la lógica para eliminar un material
+            }}
+            totalCost={totalCost}
+          />
         </div>
 
         <div className="col-12">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <h6 className="card-title d-flex align-items-center mb-4">
-                <CIcon icon={cilPeople} className="text-primary me-2" />
-                Services
-              </h6>
-              <div className="row g-3">
-                {services.map((service) => (
-                  <div key={service.id} className="col-md-6 col-lg-4">
-                    <div className="card h-100">
-                      <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <h6 className="mb-0">{service.name}</h6>
-                          <CBadge color={service.status === 'Completed' ? 'success' : 'primary'}>
-                            {service.status}
-                          </CBadge>
-                        </div>
-                        <p className="text-muted small mb-0">{service.description}</p>
-                        <div className="mt-3">
-                          <CButton 
-                            color="danger" 
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveService(service.id)}
-                          >
-                            Remove
-                          </CButton>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <div className="col-md-6 col-lg-4">
-                  <div className="card h-100 border-dashed">
-                    <div className="card-body d-flex align-items-center justify-content-center">
-                      <CButton 
-                        color="primary" 
-                        variant="ghost"
-                        onClick={() => setModalType('addService')}
-                      >
-                        <CIcon icon={cilPlus} className="me-2" />
-                        Add Service
-                      </CButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Services
+            services={services}
+            handleAddService={() => {
+              // Implementa la lógica para añadir un servicio
+            }}
+            handleRemoveService={(id) => {
+              // Implementa la lógica para eliminar un servicio
+            }}
+          />
         </div>
 
         <div className="col-12">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <h6 className="card-title d-flex align-items-center mb-4">
-                <CIcon icon={cilCloudUpload} className="text-primary me-2" />
-                Project Photos
-              </h6>
-              <div className="row g-3">
-                {selectedProject.photos?.map((photo, index) => (
-                  <div key={index} className="col-6 col-md-4 col-lg-3">
-                    <div className="position-relative">
-                      <img 
-                        src={photo.url || "/placeholder.svg"} 
-                        alt={`Project photo ${index + 1}`}
-                        className="img-fluid rounded shadow-sm"
-                        style={{ aspectRatio: '1', objectFit: 'cover' }}
-                      />
-                      <CButton
-                        color="danger"
-                        size="sm"
-                        className="position-absolute top-0 end-0 m-2"
-                        onClick={() => handleRemovePhoto(photo.id)}
-                      >
-                        <CIcon icon={cilTrash} />
-                      </CButton>
-                    </div>
-                  </div>
-                ))}
-                <div className="col-6 col-md-4 col-lg-3">
-                  <div 
-                    className="border-dashed rounded d-flex align-items-center justify-content-center"
-                    style={{ aspectRatio: '1' }}
-                  >
-                    <div className="text-center">
-                      <CFormInput
-                        type="file"
-                        id="photoUpload"
-                        className="d-none"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                      />
-                      <CButton 
-                        color="primary" 
-                        variant="ghost"
-                        onClick={() => document.getElementById('photoUpload').click()}
-                      >
-                        <CIcon icon={cilCloudUpload} className="me-2" />
-                        Upload Photo
-                      </CButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Photos
+            photos={project.photos}
+            handleRemovePhoto={handleRemovePhoto}
+            handleFileChange={(e) => {
+              // Implementa la lógica para manejar la subida de archivos
+            }}
+          />
         </div>
       </div>
-    </div>
-  )
-}
 
-export default ProjectDetails
+      <EmployeeList
+        projectId={project.id}
+        availableEmployees={availableEmployees}
+        show={showEmployeeList}
+        onClose={() => setShowEmployeeList(false)}
+        onAddEmployee={handleAddEmployee}
+      />
+    </div>
+  );
+};
+
+export default ProjectDetails;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   CTable,
   CTableBody,
@@ -16,8 +16,14 @@ import {
 } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { cilOptions, cilList, cilPencil, cilCalendar } from '@coreui/icons';
+import { helpHttp } from '../../../../helpers/helpHTTP';
+import { baseUrl } from '../../../../config';
 
-const ProjectList = ({ projects, getClientName, handleProjectClick, setSelectedProject, setShowModal, setModalType }) => {
+const api = helpHttp();
+
+const ProjectList = ({ projects, handleProjectClick, setSelectedProject, setShowModal, setModalType }) => {
+  
+
   return (
     <div className="table-responsive">
       <CTable align="middle" className="mb-0 border" hover responsive>
@@ -33,7 +39,7 @@ const ProjectList = ({ projects, getClientName, handleProjectClick, setSelectedP
         </CTableHead>
         <CTableBody>
           {projects.map((project, index) => (
-            <CTableRow key={project.id} className="align-middle">
+            <CTableRow key={project.id} onClick={() => handleProjectClick(project)}>
               <CTableDataCell className="text-center">
                 {index + 1}
               </CTableDataCell>
@@ -51,7 +57,7 @@ const ProjectList = ({ projects, getClientName, handleProjectClick, setSelectedP
                 <div className="d-flex align-items-center">
                   <CAvatar size="md" src={project.client_photo || '/placeholder.svg'} className="me-2" />
                   <div>
-                    <div>{getClientName(project.client_id)}</div>
+                    <div>{project.client_name}</div>
                     <small className="text-muted">{project.client_email}</small>
                   </div>
                 </div>
@@ -63,7 +69,7 @@ const ProjectList = ({ projects, getClientName, handleProjectClick, setSelectedP
                     <small className="text-muted">75% Complete</small>
                   </div>
                 </div>
-                </CTableDataCell>
+              </CTableDataCell>
               <CTableDataCell className="text-center">
                 <CBadge color={
                   project.status === 'Completed' ? 'success' :
@@ -74,16 +80,16 @@ const ProjectList = ({ projects, getClientName, handleProjectClick, setSelectedP
                 </CBadge>
               </CTableDataCell>
               <CTableDataCell className="text-center">
-                <CDropdown alignment="end">
-                  <CDropdownToggle color="transparent" caret={false} className="p-0">
+                <CDropdown>
+                  <CDropdownToggle color="secondary">
                     <CIcon icon={cilOptions} />
                   </CDropdownToggle>
                   <CDropdownMenu>
-                    <CDropdownItem onClick={() => handleProjectClick(project)}>
-                      <CIcon icon={cilList} className="me-2" /> View Details
-                    </CDropdownItem>
-                    <CDropdownItem onClick={() => {setSelectedProject(project); setShowModal(true); setModalType('edit')}}>
+                    <CDropdownItem onClick={() => { setSelectedProject(project); setShowModal(true); setModalType('edit'); }}>
                       <CIcon icon={cilPencil} className="me-2" /> Edit
+                    </CDropdownItem>
+                    <CDropdownItem onClick={() => handleProjectClick(project)}>
+                      <CIcon icon={cilList} className="me-2" /> Details
                     </CDropdownItem>
                   </CDropdownMenu>
                 </CDropdown>

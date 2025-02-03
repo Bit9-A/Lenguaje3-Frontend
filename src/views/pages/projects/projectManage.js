@@ -12,15 +12,17 @@ import {
   CModalHeader,
   CModalTitle,
   CModalBody,
-  CModalFooter
+  CModalFooter,
 } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilPlus, cilBuilding } from '@coreui/icons';
+import { cilPlus } from '@coreui/icons';
 import { helpHttp } from '../../../helpers/helpHTTP';
 import { baseUrl } from '../../../config';
 import ProjectDetails from './ProjectManage/ProjectDetails';
 import ProjectForm from './ProjectManage/ProjectForm';
 import ProjectList from './ProjectManage/ProjectList';
+
+const api = helpHttp();
 
 const ProjectManagement = () => {
   const [projects, setProjects] = useState([]);
@@ -33,22 +35,17 @@ const ProjectManagement = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
   const [clients, setClients] = useState([]);
-  const [editingMaterial, setEditingMaterial] = useState(null);
-  const [materialQuantity, setMaterialQuantity] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [newProject, setNewProject] = useState({
     name: '',
     description: '',
     start_date: '',
     end_date: '',
     client_id: '',
-    status: 'Planning'
+    status: 'Planning',
   });
-
-  const api = helpHttp();
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -102,9 +99,9 @@ const ProjectManagement = () => {
   const fetchProjectDetails = async (projectId) => {
     setLoading(true);
     try {
-      const employeesResponse = await api.get(`${baseUrl}/projects/${projectId}/employees`);
-      const materialsResponse = await api.get(`${baseUrl}/projects/${projectId}/materials`);
-      const servicesResponse = await api.get(`${baseUrl}/projects/${projectId}/services`);
+      const employeesResponse = await api.get(`${baseUrl}/projects/employees/${projectId}`);
+      const materialsResponse = await api.get(`${baseUrl}/projects/materials/${projectId}`);
+      const servicesResponse = await api.get(`${baseUrl}/projects/services/${projectId}`);
 
       if (!employeesResponse.err) setEmployees(employeesResponse);
       if (!materialsResponse.err) setMaterials(materialsResponse);
@@ -116,134 +113,6 @@ const ProjectManagement = () => {
     }
   };
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
-  const handleUpload = async () => {
-    try {
-      if (!selectedFile || !selectedProject) return;
-
-      const formData = new FormData();
-      formData.append('photo', selectedFile);
-      formData.append('project_id', selectedProject.id);
-      
-      const response = await api.post(`${baseUrl}/projects/photos`, { 
-        body: formData,
-        headers: {
-          'Content-Type': undefined 
-        }
-      });
-
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-        setSelectedFile(null);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error uploading file:');
-    }
-  };
-
-  const handleAddEmployee = async (employeeId) => {
-    try {
-      const response = await api.post(`${baseUrl}/projects/employees`, {
-        body: {
-          project_id: selectedProject.id,
-          employee_id: employeeId
-        }
-      });
-
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error adding employee:');
-    }
-  };
-
-  const handleRemoveEmployee = async (employeeId) => {
-    try {
-      const response = await api.del(`${baseUrl}/projects/employees/${selectedProject.id}/${employeeId}`);
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error removing employee:');
-    }
-  };
-
-  const handleAddMaterial = async (materialId, quantity) => {
-    try {
-      const response = await api.post(`${baseUrl}/projects/materials`, {
-        body: {
-          project_id: selectedProject.id,
-          material_id: materialId,
-          quantity
-        }
-      });
-
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error adding material:');
-    }
-  };
-
-  const handleRemoveMaterial = async (materialId) => {
-    try {
-      const response = await api.del(`${baseUrl}/projects/materials/${selectedProject.id}/${materialId}`);
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error removing material:');
-    }
-  };
-
-  const handleAddService = async (serviceId) => {
-    try {
-      const response = await api.post(`${baseUrl}/projects/services`, {
-        body: {
-          project_id: selectedProject.id,
-          service_id: serviceId,
-          status: 'Pending'
-        }
-      });
-
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error adding service:');
-    }
-  };
-
-  const handleRemoveService = async (serviceId) => {
-    try {
-      const response = await api.del(`${baseUrl}/projects/services/${selectedProject.id}/${serviceId}`);
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error removing service:');
-    }
-  };
-
   const handleProjectClick = async (project) => {
     setSelectedProject(project);
     await fetchProjectDetails(project.id);
@@ -252,37 +121,8 @@ const ProjectManagement = () => {
   };
 
   const getClientName = (clientId) => {
-    const client = clients.find(c => c.id === clientId);
+    const client = clients.find((c) => c.id === clientId);
     return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client';
-  };
-
-  const handleUpdateMaterialQuantity = async (materialId, quantity) => {
-    try {
-      const response = await api.put(`${baseUrl}/projects/materials/${selectedProject.id}/${materialId}`, {
-        body: { quantity: parseInt(quantity) }
-      });
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-        setEditingMaterial(null);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error updating material quantity:');
-    }
-  };
-
-  const handleRemovePhoto = async (photoId) => {
-    try {
-      const response = await api.del(`${baseUrl}/projects/photos/${photoId}`);
-      if (!response.err) {
-        fetchProjectDetails(selectedProject.id);
-      } else {
-        throw new Error(response.err);
-      }
-    } catch (err) {
-      handleApiError(err, 'Error removing photo:');
-    }
   };
 
   const handleApiError = (error, message) => {
@@ -304,7 +144,7 @@ const ProjectManagement = () => {
           start_date: '',
           end_date: '',
           client_id: '',
-          status: 'Planning'
+          status: 'Planning',
         });
       } else {
         throw new Error(response.err);
@@ -374,7 +214,7 @@ const ProjectManagement = () => {
         </CCard>
       </CCol>
 
-      <CModal visible={showModal} onClose={() => setShowModal(false)}>
+      <CModal size="xl" visible={showModal} onClose={() => setShowModal(false)}>
         <CModalHeader onClose={() => setShowModal(false)}>
           <CModalTitle>{modalType === 'add' ? 'Add Project' : modalType === 'edit' ? 'Edit Project' : 'Project Details'}</CModalTitle>
         </CModalHeader>
@@ -388,20 +228,7 @@ const ProjectManagement = () => {
               availableEmployees={availableEmployees}
               availableMaterials={availableMaterials}
               availableServices={availableServices}
-              handleAddEmployee={handleAddEmployee}
-              handleRemoveEmployee={handleRemoveEmployee}
-              handleAddMaterial={handleAddMaterial}
-              handleRemoveMaterial={handleRemoveMaterial}
-              handleAddService={handleAddService}
-              handleRemoveService={handleRemoveService}
-              handleFileChange={handleFileChange}
-              handleUpload={handleUpload}
-              handleUpdateMaterialQuantity={handleUpdateMaterialQuantity}
-              handleRemovePhoto={handleRemovePhoto}
-              editingMaterial={editingMaterial}
-              setEditingMaterial={setEditingMaterial}
-              materialQuantity={materialQuantity}
-              setMaterialQuantity={setMaterialQuantity}
+              fetchProjectDetails={fetchProjectDetails}
             />
           ) : (
             <ProjectForm
