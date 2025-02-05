@@ -88,7 +88,7 @@ const Materials = ({ projectId }) => {
     if (selectedMaterial && quantity > 0) {
       try {
         const response = await api.post(`${baseUrl}/projects/add-material`, {
-          body: JSON.stringify({ project_id: projectId, material_id: selectedMaterial.id, quantity }),
+          body: { project_id: projectId, material_id: selectedMaterial.id, quantity, is_paid: 'false'},
           headers: { 'Content-Type': 'application/json' },
         });
         if (!response.err) {

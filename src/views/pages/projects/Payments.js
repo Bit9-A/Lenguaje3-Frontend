@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   CCard,
   CCardBody,
@@ -12,270 +12,251 @@ import {
   CTableHeaderCell,
   CTableRow,
   CButton,
-  CCollapse,
-  CBadge,
   CModal,
   CModalHeader,
   CModalTitle,
   CModalBody,
   CModalFooter,
+  CBadge,
+  CSpinner,
   CAlert,
-  CFormSwitch,
+  CProgress,
+  CTooltip,
+  CInputGroup,
+  CInputGroupText,
+  CFormInput,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilChevronBottom, cilChevronRight, cilFile, cilCheckCircle, cilXCircle, cilEnvelopeClosed } from '@coreui/icons'
-import { baseUrl } from '../../../config' // Importar baseUrl
+import { 
+  cilDollar, 
+  cilMoney, 
+  cilCheckCircle, 
+  cilWarning,
+  cilInfo,
+  cilCloudDownload,
+} from '@coreui/icons'
+import { helpHttp } from '../../../helpers/helpHTTP'
+import { baseUrl } from '../../../config'
+
+const api = helpHttp()
 
 const Payments = () => {
-  const [projects, setProjects] = useState([
-    {
-      id: 1,
-      name: 'Modern Kitchen Renovation',
-      client: 'John Smith',
-      totalCost: 15000,
-      status: 'In Progress',
-      services: [
-        { id: 1, name: 'Design Consultation', cost: 1000, paid: true },
-        { id: 2, name: 'Demolition', cost: 2000, paid: true },
-        { id: 3, name: 'Cabinetry Installation', cost: 5000, paid: false },
-        { id: 4, name: 'Countertop Installation', cost: 3000, paid: false },
-        { id: 5, name: 'Appliance Installation', cost: 4000, paid: false },
-      ],
-      invoice: {
-        number: 'INV-2023-001',
-        date: '2023-05-15',
-        dueDate: '2023-06-15',
-        paymentStatus: 'Partial',
-        amountPaid: 3000,
-      }
-    },
-    {
-      id: 2,
-      name: 'Master Bathroom Remodel',
-      client: 'Mary Johnson',
-      totalCost: 12000,
-      status: 'Completed',
-      services: [
-        { id: 1, name: 'Design Consultation', cost: 800, paid: true },
-        { id: 2, name: 'Demolition', cost: 1500, paid: true },
-        { id: 3, name: 'Tiling', cost: 3500, paid: true },
-        { id: 4, name: 'Plumbing Fixtures', cost: 4000, paid: true },
-        { id: 5, name: 'Vanity Installation', cost: 2200, paid: true },
-      ],
-      invoice: {
-        number: 'INV-2023-002',
-        date: '2023-04-01',
-        dueDate: '2023-05-01',
-        paymentStatus: 'Paid',
-        amountPaid: 12000,
-      }
-    },
-    {
-      id: 3,
-      name: 'Living Room Extension',
-      client: 'Robert Davis',
-      totalCost: 20000,
-      status: 'Pending',
-      services: [
-        { id: 1, name: 'Architectural Design', cost: 2000, paid: false },
-        { id: 2, name: 'Foundation Work', cost: 5000, paid: false },
-        { id: 3, name: 'Framing and Drywall', cost: 6000, paid: false },
-        { id: 4, name: 'Electrical Work', cost: 3000, paid: false },
-        { id: 5, name: 'Flooring', cost: 4000, paid: false },
-      ],
-      invoice: {
-        number: 'INV-2023-003',
-        date: '2023-06-01',
-        dueDate: '2023-07-01',
-        paymentStatus: 'Unpaid',
-        amountPaid: 0,
-      }
-    },
-  ])
+  const [projects, setProjects] = useState([])
+  const [selectedProject, setSelectedProject] = useState(null)
+  const [unpaidServices, setUnpaidServices] = useState([])
+  const [paidServices, setPaidServices] = useState([])
+  const [unpaidMaterials, setUnpaidMaterials] = useState([])
+  const [paidMaterials, setPaidMaterials] = useState([])
+  const [showModal, setShowModal] = useState(false)
+  const [totalCost, setTotalCost] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
 
-  const [visibleProject, setVisibleProject] = useState(null)
-  const [selectedInvoice, setSelectedInvoice] = useState(null)
-  const [alertMessage, setAlertMessage] = useState(null)
+  useEffect(() => {
+    fetchProjects()
+  }, [])
 
-  const toggleProjectDetails = (projectId) => {
-    setVisibleProject(visibleProject === projectId ? null : projectId)
+  const fetchProjects = async () => {
+    setLoading(true)
+    try {
+      const response = await api.get(`${baseUrl}/projects`)
+      if (!response.err) {
+        setProjects(response)
+      } else {
+        throw new Error(response.err)
+      }
+    } catch (err) {
+      console.error('Error fetching projects:', err)
+      setError('Failed to fetch projects. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const openInvoice = (invoice, project) => {
-    setSelectedInvoice({ ...invoice, project })
+  const fetchProjectDetails = async (projectId) => {
+    setLoading(true)
+    try {
+      const [unpaidServicesResponse, paidServicesResponse, unpaidMaterialsResponse, paidMaterialsResponse] = await Promise.all([
+        api.get(`${baseUrl}/payments/unpaid-services/${projectId}`),
+        api.get(`${baseUrl}/payments/paid-services/${projectId}`),
+        api.get(`${baseUrl}/payments/unpaid-materials/${projectId}`),
+        api.get(`${baseUrl}/payments/paid-materials/${projectId}`)
+      ])
+
+      if (!unpaidServicesResponse.err) setUnpaidServices(unpaidServicesResponse)
+      if (!paidServicesResponse.err) setPaidServices(paidServicesResponse)
+      if (!unpaidMaterialsResponse.err) setUnpaidMaterials(unpaidMaterialsResponse)
+      if (!paidMaterialsResponse.err) setPaidMaterials(paidMaterialsResponse)
+    } catch (err) {
+      console.error('Error fetching project details:', err)
+      setError('Failed to fetch project details. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const getStatusBadge = (status) => {
+  const fetchTotalCost = async (projectId) => {
+    try {
+      const totalCostResponse = await api.get(`${baseUrl}/payments/total-cost/${projectId}`)
+      if (!totalCostResponse.err) {
+        const totalCost = totalCostResponse.total_cost || 0
+        setTotalCost(totalCost)
+      }
+    } catch (err) {
+      console.error('Error fetching total cost:', err)
+      setError('Failed to fetch total cost. Please try again.')
+    }
+  }
+
+  const handleProjectClick = (project) => {
+    setSelectedProject(project)
+    fetchProjectDetails(project.id)
+    fetchTotalCost(project.id)
+    setShowModal(true)
+  }
+
+  const handleUpdatePaymentStatus = async (itemId, itemType, isPaid) => {
+    try {
+      const endpoint = itemType === 'service' ? 'update-service-payment' : 'update-material-payment'
+      const response = await api.put(`${baseUrl}/payments/${endpoint}/use`, {
+        body: { project_id: selectedProject.id, [`${itemType}_id`]: itemId, is_paid: isPaid },
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (!response.err) {
+       
+        const paymentData = {
+          amount: itemType === 'service' ? unpaidServices.find(service => service.service_id === itemId).service_price : unpaidMaterials.find(material => material.material_id === itemId).material_price,
+          payment_date: new Date().toISOString().split('T')[0],
+          project_id: selectedProject.id,
+          payment_type_id: 1, 
+          description: `Payment for ${itemType} ID ${itemId}`,
+          [`${itemType}_id`]: itemId
+        }
+        await api.post(`${baseUrl}/payments`, { body: paymentData, headers: { 'Content-Type': 'application/json' } })
+
+        fetchProjectDetails(selectedProject.id)
+        fetchTotalCost(selectedProject.id)
+      } else {
+        throw new Error(response.err)
+      }
+    } catch (err) {
+      console.error(`Error updating ${itemType} payment status:`, err)
+      setError(`Failed to update ${itemType} payment status. Please try again.`)
+    }
+  }
+  const handleGenerateExcel = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${baseUrl}/payments/generate-excel/use`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'estadisticas_ingresos.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      console.error('Error generating Excel file:', err);
+      setError('Failed to generate Excel file. Please try again.');
+    }
+  }
+
+
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.client_name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const getStatusColor = (status) => {
     switch (status) {
       case 'Completed':
-        return <CBadge color="success">{status}</CBadge>
+        return 'success'
       case 'In Progress':
-        return <CBadge color="primary">{status}</CBadge>
-      case 'Pending':
-        return <CBadge color="warning">{status}</CBadge>
+        return 'primary'
       default:
-        return <CBadge color="secondary">{status}</CBadge>
+        return 'warning'
     }
   }
 
-  const getPaymentStatusBadge = (status) => {
-    switch (status) {
-      case 'Paid':
-        return <CBadge color="success">{status}</CBadge>
-      case 'Partial':
-        return <CBadge color="warning">{status}</CBadge>
-      case 'Unpaid':
-        return <CBadge color="danger">{status}</CBadge>
-      default:
-        return <CBadge color="secondary">{status}</CBadge>
-    }
+  const calculatePaymentProgress = (paid, unpaid) => {
+    const total = paid.length + unpaid.length
+    return total > 0 ? (paid.length / total) * 100 : 0
   }
 
-  const getPaymentIcon = (paid) => {
-    return paid ? 
-      <CIcon icon={cilCheckCircle} className="text-success me-2" /> : 
-      <CIcon icon={cilXCircle} className="text-danger me-2" />
-  }
-
-  const canSendInvoice = (project) => {
-    return project.status === 'Completed' || project.services.some(service => service.paid)
-  }
-
-  const sendInvoice = (project) => {
-    console.log(`Sending invoice for project: ${project.name}`)
-    setAlertMessage(`Invoice for ${project.name} has been sent to ${project.client}.`)
-    setTimeout(() => setAlertMessage(null), 5000)
-  }
-
-  const toggleServicePayment = (projectId, serviceId) => {
-    setProjects(projects.map(project => {
-      if (project.id === projectId) {
-        const updatedServices = project.services.map(service => 
-          service.id === serviceId ? { ...service, paid: !service.paid } : service
-        )
-        const amountPaid = updatedServices.reduce((sum, service) => service.paid ? sum + service.cost : sum, 0)
-        const paymentStatus = amountPaid === project.totalCost ? 'Paid' : amountPaid > 0 ? 'Partial' : 'Unpaid'
-        return {
-          ...project,
-          services: updatedServices,
-          invoice: {
-            ...project.invoice,
-            paymentStatus,
-            amountPaid,
-          }
-        }
-      }
-      return project
-    }))
+  if (loading && projects.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <CSpinner color="primary" />
+      </div>
+    )
   }
 
   return (
     <CRow>
       <CCol xs={12}>
-        {alertMessage && (
-          <CAlert color="success" dismissible onClose={() => setAlertMessage(null)}>
-            {alertMessage}
-          </CAlert>
-        )}
         <CCard className="mb-4">
           <CCardHeader>
-            <strong>Payments and Invoices</strong>
+            <strong>Project Payments</strong>
+            <CButton color="success" className="float-end" onClick={handleGenerateExcel}>
+              <CIcon icon={cilCloudDownload} className="me-2" />
+              Generate Excel
+            </CButton>
           </CCardHeader>
           <CCardBody>
+            {error && (
+              <CAlert color="danger" dismissible onClose={() => setError(null)}>
+                {error}
+              </CAlert>
+            )}
+            <CInputGroup className="mb-3">
+              <CInputGroupText>
+                <CIcon icon={cilInfo} />
+              </CInputGroupText>
+              <CFormInput
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </CInputGroup>
             <CTable align="middle" className="mb-0 border" hover responsive>
               <CTableHead color="light">
                 <CTableRow>
                   <CTableHeaderCell>Project Name</CTableHeaderCell>
                   <CTableHeaderCell>Client</CTableHeaderCell>
-                  <CTableHeaderCell>Total Cost</CTableHeaderCell>
                   <CTableHeaderCell>Status</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Payment Status</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {projects.map((project) => (
-                  <React.Fragment key={project.id}>
-                    <CTableRow>
-                      <CTableDataCell>{project.name}</CTableDataCell>
-                      <CTableDataCell>{project.client}</CTableDataCell>
-                      <CTableDataCell>${project.totalCost.toLocaleString()}</CTableDataCell>
-                      <CTableDataCell>{getStatusBadge(project.status)}</CTableDataCell>
-                      <CTableDataCell className="text-center">
-                        <CButton 
-                          color="primary" 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => toggleProjectDetails(project.id)}
-                          className="me-2"
-                        >
-                          <CIcon icon={visibleProject === project.id ? cilChevronBottom : cilChevronRight} />
-                          {visibleProject === project.id ? 'Hide' : 'Show'} Details
-                        </CButton>
-                        <CButton
-                          color="info"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openInvoice(project.invoice, project)}
-                          className="me-2"
-                        >
-                          <CIcon icon={cilFile} /> View Invoice
-                        </CButton>
-                        {canSendInvoice(project) && (
-                          <CButton
-                            color="success"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => sendInvoice(project)}
-                          >
-                            <CIcon icon={cilEnvelopeClosed} /> Send Invoice
-                          </CButton>
-                        )}
-                      </CTableDataCell>
-                    </CTableRow>
-                    <CTableRow>
-                      <CTableDataCell colSpan={5} className="p-0">
-                        <CCollapse visible={visibleProject === project.id}>
-                          <CCard className="m-3">
-                            <CCardHeader>
-                              <strong>Services for {project.name}</strong>
-                            </CCardHeader>
-                            <CCardBody>
-                              <CTable bordered small>
-                                <CTableHead>
-                                  <CTableRow>
-                                    <CTableHeaderCell>Service Name</CTableHeaderCell>
-                                    <CTableHeaderCell>Cost</CTableHeaderCell>
-                                    <CTableHeaderCell>Payment Status</CTableHeaderCell>
-                                    <CTableHeaderCell>Actions</CTableHeaderCell>
-                                  </CTableRow>
-                                </CTableHead>
-                                <CTableBody>
-                                  {project.services.map((service) => (
-                                    <CTableRow key={service.id}>
-                                      <CTableDataCell>{service.name}</CTableDataCell>
-                                      <CTableDataCell>${service.cost.toLocaleString()}</CTableDataCell>
-                                      <CTableDataCell>
-                                        {getPaymentIcon(service.paid)}
-                                        {service.paid ? 'Paid' : 'Unpaid'}
-                                      </CTableDataCell>
-                                      <CTableDataCell className="text-center">
-                                        <CFormSwitch 
-                                          id={`service-paid-${project.id}-${service.id}`}
-                                          label={service.paid ? "Paid" : "Unpaid"}
-                                          checked={service.paid}
-                                          onChange={() => toggleServicePayment(project.id, service.id)}
-                                        />
-                                      </CTableDataCell>
-                                    </CTableRow>
-                                  ))}
-                                </CTableBody>
-                              </CTable>
-                            </CCardBody>
-                          </CCard>
-                        </CCollapse>
-                      </CTableDataCell>
-                    </CTableRow>
-                  </React.Fragment>
+                {filteredProjects.map((project) => (
+                  <CTableRow key={project.id}>
+                    <CTableDataCell>{project.name}</CTableDataCell>
+                    <CTableDataCell>{project.client_name}</CTableDataCell>
+                    <CTableDataCell>
+                      <CBadge color={getStatusColor(project.status)}>
+                        {project.status}
+                      </CBadge>
+                    </CTableDataCell>
+                    <CTableDataCell className="text-center">
+                      <CButton color="info" variant="outline" onClick={() => handleProjectClick(project)}>
+                        <CIcon icon={cilDollar} className="me-2" />
+                        View Payments
+                      </CButton>
+                    </CTableDataCell>
+                  </CTableRow>
                 ))}
               </CTableBody>
             </CTable>
@@ -283,56 +264,134 @@ const Payments = () => {
         </CCard>
       </CCol>
 
-      <CModal visible={!!selectedInvoice} onClose={() => setSelectedInvoice(null)} size="lg">
-        <CModalHeader closeButton>
-          <CModalTitle>Invoice {selectedInvoice?.number}</CModalTitle>
+      <CModal visible={showModal} onClose={() => setShowModal(false)} size="xl">
+        <CModalHeader onClose={() => setShowModal(false)}>
+          <CModalTitle>
+            <CIcon icon={cilMoney} className="me-2" />
+            Payment Details: {selectedProject?.name}
+          </CModalTitle>
         </CModalHeader>
         <CModalBody>
-          {selectedInvoice && (
-            <>
-              <CRow className="mb-3">
-                <CCol><strong>Project:</strong> {selectedInvoice.project.name}</CCol>
-                <CCol><strong>Client:</strong> {selectedInvoice.project.client}</CCol>
-              </CRow>
-              <CRow className="mb-3">
-                <CCol><strong>Invoice Date:</strong> {selectedInvoice.date}</CCol>
-                <CCol><strong>Due Date:</strong> {selectedInvoice.dueDate}</CCol>
-              </CRow>
-              <CRow className="mb-3">
-                <CCol><strong>Total Amount:</strong> ${selectedInvoice.project.totalCost.toLocaleString()}</CCol>
-                <CCol><strong>Amount Paid:</strong> ${selectedInvoice.amountPaid.toLocaleString()}</CCol>
-              </CRow>
-              <CRow className="mb-3">
-                <CCol><strong>Payment Status:</strong> {getPaymentStatusBadge(selectedInvoice.paymentStatus)}</CCol>
-              </CRow>
-              <CTable bordered>
-                <CTableHead>
-                  <CTableRow>
-                    <CTableHeaderCell>Service</CTableHeaderCell>
-                    <CTableHeaderCell>Cost</CTableHeaderCell>
-                    <CTableHeaderCell>Payment Status</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  {selectedInvoice.project.services.map((service) => (
-                    <CTableRow key={service.id}>
-                      <CTableDataCell>{service.name}</CTableDataCell>
-                      <CTableDataCell>${service.cost.toLocaleString()}</CTableDataCell>
-                      <CTableDataCell>
-                        {getPaymentIcon(service.paid)}
-                        {service.paid ? 'Paid' : 'Unpaid'}
-                      </CTableDataCell>
-                    </CTableRow>
-                  ))}
-                </CTableBody>
-              </CTable>
-            </>
+          {loading ? (
+            <div className="text-center">
+              <CSpinner color="primary" />
+            </div>
+          ) : (
+            selectedProject && (
+              <>
+                <CRow>
+                  <CCol md={6}>
+                    <h5>Services</h5>
+                    <CTable bordered small>
+                      <CTableHead>
+                        <CTableRow>
+                          <CTableHeaderCell>Service</CTableHeaderCell>
+                          <CTableHeaderCell>Cost</CTableHeaderCell>
+                          <CTableHeaderCell>Status</CTableHeaderCell>
+                          <CTableHeaderCell>Actions</CTableHeaderCell>
+                        </CTableRow>
+                      </CTableHead>
+                      <CTableBody>
+                        {[...unpaidServices, ...paidServices].map((service) => (
+                          <CTableRow key={service.service_id}>
+                            <CTableDataCell>{service.service_name}</CTableDataCell>
+                            <CTableDataCell>${service.service_price.toLocaleString()}</CTableDataCell>
+                            <CTableDataCell>
+                              <CBadge color={service.is_paid ? 'success' : 'danger'}>
+                                {service.is_paid ? 'Paid' : 'Unpaid'}
+                              </CBadge>
+                            </CTableDataCell>
+                            <CTableDataCell>
+                              {!service.is_paid && (
+                                <CButton 
+                                  color="success" 
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleUpdatePaymentStatus(service.service_id, 'service', true)}
+                                >
+                                  <CIcon icon={cilCheckCircle} /> Mark as Paid
+                                </CButton>
+                              )}
+                            </CTableDataCell>
+                          </CTableRow>
+                        ))}
+                      </CTableBody>
+                    </CTable>
+                  </CCol>
+                  <CCol md={6}>
+                    <h5>Materials</h5>
+                    <CTable bordered small>
+                      <CTableHead>
+                        <CTableRow>
+                          <CTableHeaderCell>Material</CTableHeaderCell>
+                          <CTableHeaderCell>Cost</CTableHeaderCell>
+                          <CTableHeaderCell>Status</CTableHeaderCell>
+                          <CTableHeaderCell>Actions</CTableHeaderCell>
+                        </CTableRow>
+                      </CTableHead>
+                      <CTableBody>
+                        {[...unpaidMaterials, ...paidMaterials].map((material) => (
+                          <CTableRow key={material.material_id}>
+                            <CTableDataCell>{material.material_name}</CTableDataCell>
+                            <CTableDataCell>${material.material_price.toLocaleString()}</CTableDataCell>
+                            <CTableDataCell>
+                              <CBadge color={material.is_paid ? 'success' : 'danger'}>
+                                {material.is_paid ? 'Paid' : 'Unpaid'}
+                              </CBadge>
+                            </CTableDataCell>
+                            <CTableDataCell>
+                              {!material.is_paid && (
+                                <CButton 
+                                  color="success" 
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleUpdatePaymentStatus(material.material_id, 'material', true)}
+                                >
+                                  <CIcon icon={cilCheckCircle} /> Mark as Paid
+                                </CButton>
+                              )}
+                            </CTableDataCell>
+                          </CTableRow>
+                        ))}
+                      </CTableBody>
+                    </CTable>
+                  </CCol>
+                </CRow>
+                <CRow className="mt-4">
+                  <CCol>
+                    <CCard>
+                      <CCardBody>
+                        <h5>Payment Summary</h5>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span>Total Cost:</span>
+                          <strong>${totalCost.toLocaleString()}</strong>
+                        </div>
+                        <CProgress 
+                          className="mt-3" 
+                          value={calculatePaymentProgress(paidServices, unpaidServices)} 
+                          color="success"
+                        />
+                        <small className="text-muted">
+                          {calculatePaymentProgress(paidServices, unpaidServices).toFixed(2)}% of services paid
+                        </small>
+                        <CProgress 
+                          className="mt-3" 
+                          value={calculatePaymentProgress(paidMaterials, unpaidMaterials)} 
+                          color="info"
+                        />
+                        <small className="text-muted">
+                          {calculatePaymentProgress(paidMaterials, unpaidMaterials).toFixed(2)}% of materials paid
+                        </small>
+                      </CCardBody>
+                    </CCard>
+                  </CCol>
+                </CRow>
+              </>
+            )
           )}
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setSelectedInvoice(null)}>
-            Close
-          </CButton>
+          <CButton color="secondary" onClick={() => setShowModal(false)}>Close</CButton>
         </CModalFooter>
       </CModal>
     </CRow>

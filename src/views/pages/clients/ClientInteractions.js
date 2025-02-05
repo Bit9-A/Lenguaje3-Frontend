@@ -27,7 +27,7 @@ import {
   CForm,
 } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilSearch, cilPlus, cilPhone, cilEnvelopeClosed, cilPeople, cilNotes, cilPencil, cilTrash } from '@coreui/icons';
+import { cilSearch, cilPlus, cilPhone, cilEnvelopeClosed, cilPeople, cilNotes } from '@coreui/icons';
 import { helpHttp } from '../../../helpers/helpHTTP';
 
 const ClientInteractions = () => {
@@ -35,7 +35,6 @@ const ClientInteractions = () => {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [formData, setFormData] = useState({
@@ -75,41 +74,12 @@ const ClientInteractions = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingId) {
-        await api.put(`${baseUrl}/client_interactions/${editingId}`, { body: formData });
-      } else {
-        await api.post(`${baseUrl}/client_interactions`, { body: formData });
-      }
+      await api.post(`${baseUrl}/notifications/interactions`, { body: formData });
       setShowModal(false);
-      setEditingId(null);
       resetForm();
       fetchData();
     } catch (error) {
       console.error('Error saving interaction:', error);
-    }
-  };
-
-  const handleEdit = (interaction) => {
-    setFormData({
-      client_id: interaction.client_id,
-      employee_id: interaction.employee_id,
-      type: interaction.type,
-      interaction_date: interaction.interaction_date,
-      notes: interaction.notes,
-      follow_up: interaction.follow_up,
-    });
-    setEditingId(interaction.id);
-    setShowModal(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this interaction?')) {
-      try {
-        await api.del(`${baseUrl}/client_interactions/${id}`);
-        fetchData();
-      } catch (error) {
-        console.error('Error deleting interaction:', error);
-      }
     }
   };
 
@@ -174,16 +144,6 @@ const ClientInteractions = () => {
                   <option value="Meeting">Meeting</option>
                 </CFormSelect>
               </CCol>
-              <CCol md={4}>
-                <CFormInput
-                  type="date"
-                  name="interaction_date"
-                  value={formData.interaction_date}
-                  onChange={handleInputChange}
-                  placeholder="Select date"
-                  className="form-control"
-                />
-              </CCol>
               <CCol md={3} className="text-end">
                 <CButton color="primary" onClick={() => {resetForm(); setShowModal(true);}}>
                   <CIcon icon={cilPlus} className="me-2" />
@@ -200,7 +160,6 @@ const ClientInteractions = () => {
                   <CTableHeaderCell>Date</CTableHeaderCell>
                   <CTableHeaderCell>Notes</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Follow-up</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
@@ -209,7 +168,7 @@ const ClientInteractions = () => {
                     <CTableDataCell>{getClientName(interaction.client_id)}</CTableDataCell>
                     <CTableDataCell>{getEmployeeName(interaction.employee_id)}</CTableDataCell>
                     <CTableDataCell>
-                      <CIcon icon={cilPhone} className="me-2" />
+                      <CIcon icon={interaction.type === 'Call' ? cilPhone : interaction.type === 'Email' ? cilEnvelopeClosed : cilPeople} className="me-2" />
                       {interaction.type}
                     </CTableDataCell>
                     <CTableDataCell>{interaction.interaction_date}</CTableDataCell>
@@ -219,14 +178,6 @@ const ClientInteractions = () => {
                         {interaction.follow_up ? "Follow-up" : "No Follow-up"}
                       </CBadge>
                     </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CButton color="info" variant="ghost" size="sm" className="me-2" onClick={() => handleEdit(interaction)}>
-                        <CIcon icon={cilPencil} /> Edit
-                      </CButton>
-                      <CButton color="danger" variant="ghost" size="sm" onClick={() => handleDelete(interaction.id)}>
-                        <CIcon icon={cilTrash} /> Delete
-                      </CButton>
-                    </CTableDataCell>
                   </CTableRow>
                 ))}
               </CTableBody>
@@ -235,9 +186,9 @@ const ClientInteractions = () => {
         </CCard>
       </CCol>
 
-      <CModal visible={showModal} onClose={() => {setShowModal(false); setEditingId(null); resetForm();}}>
+      <CModal visible={showModal} onClose={() => {setShowModal(false); resetForm();}}>
         <CModalHeader closeButton>
-          <CModalTitle>{editingId ? 'Edit Interaction' : 'New Interaction'}</CModalTitle>
+          <CModalTitle>New Interaction</CModalTitle>
         </CModalHeader>
         <CModalBody>
           <CForm onSubmit={handleSubmit}>
@@ -316,11 +267,11 @@ const ClientInteractions = () => {
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => {setShowModal(false); setEditingId(null); resetForm();}}>
+          <CButton color="secondary" onClick={() => {setShowModal(false); resetForm();}}>
             Cancel
           </CButton>
           <CButton color="primary" onClick={handleSubmit}>
-            {editingId ? 'Update' : 'Save'}
+            Save
           </CButton>
         </CModalFooter>
       </CModal>

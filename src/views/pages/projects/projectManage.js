@@ -174,6 +174,10 @@ const ProjectManagement = () => {
     }
   };
 
+  const updateProjectList = () => {
+    fetchProjects();
+  };
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -240,6 +244,7 @@ const ProjectManagement = () => {
               handleUpdateProject={handleUpdateProject}
               setNewProject={setNewProject}
               setSelectedProject={setSelectedProject}
+              updateProjectList={updateProjectList}
             />
           )}
         </CModalBody>

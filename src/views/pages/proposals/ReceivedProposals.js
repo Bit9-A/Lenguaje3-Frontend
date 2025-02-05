@@ -26,14 +26,13 @@ import {
   CFormSelect,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilSearch, cilCommentSquare, cilClock, cilTrash, cilCheckCircle, cilXCircle } from '@coreui/icons'
+import { cilSearch, cilCommentSquare, cilClock, cilCheckCircle, cilXCircle } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
 import { baseUrl } from '../../../config' // Importar baseUrl
 
 const Proposals = () => {
   const [proposals, setProposals] = useState([])
   const [clients, setClients] = useState([])
-  const [budgetTypes, setBudgetTypes] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProposal, setSelectedProposal] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -65,14 +64,10 @@ const Proposals = () => {
     }
   }
 
- 
-
   const getClientName = (clientId) => {
     const client = clients.find(c => c.id === clientId)
     return client ? `${client.firstname} ${client.lastname}` : 'Unknown Client'
   }
-
-  
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -114,17 +109,6 @@ const Proposals = () => {
         setNewComment('')
       } else {
         console.error('Error adding comment:', response.err)
-      }
-    }
-  }
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this proposal?')) {
-      const response = await api.del(`${baseUrl}/proposals/${id}`)
-      if (!response.err) {
-        setProposals(proposals.filter(p => p.id !== id))
-      } else {
-        console.error('Error deleting proposal:', response.err)
       }
     }
   }
@@ -195,7 +179,7 @@ const Proposals = () => {
                   <CTableHeaderCell>Client Name</CTableHeaderCell>
                   <CTableHeaderCell>Project Description</CTableHeaderCell>
                   <CTableHeaderCell>Date</CTableHeaderCell>
-                  <CTableHeaderCell>Budget Type</CTableHeaderCell>
+                  <CTableHeaderCell>Budget</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Status</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Actions</CTableHeaderCell>
                 </CTableRow>
@@ -206,7 +190,7 @@ const Proposals = () => {
                     <CTableDataCell>{getClientName(proposal.client_id)}</CTableDataCell>
                     <CTableDataCell>{proposal.proposal_description}</CTableDataCell>
                     <CTableDataCell>{proposal.proposal_date}</CTableDataCell>
-                    <CTableDataCell>{proposal.budget}$</CTableDataCell>
+                    <CTableDataCell>{proposal.budget_min}$ - {proposal.budget_max}$</CTableDataCell>
                     <CTableDataCell className="text-center">
                       {getStatusBadge(proposal.status)}
                     </CTableDataCell>
@@ -220,16 +204,6 @@ const Proposals = () => {
                       >
                         <CIcon icon={cilCommentSquare} /> View Details
                       </CButton>
-                      {proposal.status !== 'Pending' && (
-                        <CButton 
-                          color="danger" 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDelete(proposal.id)}
-                        >
-                          <CIcon icon={cilTrash} /> Delete
-                        </CButton>
-                      )}
                     </CTableDataCell>
                   </CTableRow>
                 ))}
@@ -249,7 +223,7 @@ const Proposals = () => {
               <h4>{selectedProposal.proposal_description}</h4>
               <p><strong>Client:</strong> {getClientName(selectedProposal.client_id)}</p>
               <p><strong>Date:</strong> {selectedProposal.proposal_date}</p>
-              <p><strong>Budget Type:</strong> {selectedProposal.budget}$</p>
+              <p><strong>Budget:</strong> {selectedProposal.budget_min}$ - {selectedProposal.budget_max}$</p>
               <p><strong>Status:</strong> {getStatusBadge(selectedProposal.status)}</p>
               {selectedProposal.status === 'Pending' && (
                 <div className="mb-3">

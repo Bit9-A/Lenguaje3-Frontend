@@ -1,128 +1,123 @@
-import React from 'react';
-import {
-  CForm,
-  CFormInput,
-  CFormSelect,
-  CFormTextarea,
-  CRow,
-  CCol,
-  CButton
-} from '@coreui/react';
+import React, { useState, useEffect } from 'react'
+import { CForm, CListGroup, CListGroupItem, CRow, CCol, CButton, CFormInput } from '@coreui/react'
+import { helpHttp } from '../../../../helpers/helpHTTP'
+import { baseUrl } from '../../../../config'
 
-const ProjectForm = ({
-  modalType,
-  newProject,
-  selectedProject,
-  clients,
-  handleCreateProject,
-  handleUpdateProject,
-  setNewProject,
-  setSelectedProject
-}) => {
+const api = helpHttp()
+
+const ProjectForm = ({ newProject, setNewProject, handleCreateProject, updateProjectList}) => {
+  const [pendingProposals, setPendingProposals] = useState([])
+  const [selectedProposal, setSelectedProposal] = useState(null)
+  const [projectName, setProjectName] = useState('')
+
+  useEffect(() => {
+    fetchPendingProposals()
+  }, [])
+
+  const fetchPendingProposals = async () => {
+    try {
+      const response = await api.get(`${baseUrl}/proposals/pending`)
+      if (!response.err) {
+        setPendingProposals(response)
+      } else {
+        throw new Error(response.err)
+      }
+    } catch (err) {
+      console.error('Error fetching pending proposals:', err)
+    }
+  }
+
+  const handleSelectProposal = (proposal) => {
+    setSelectedProposal(proposal)
+  }
+
+  const handleAddProject = async () => {
+    if (selectedProposal && projectName.trim() !== '') {
+      try {
+        const response = await api.post(`${baseUrl}/projects`, {
+          body: {
+            name: projectName,
+            description: selectedProposal.proposal_description,
+            start_date: selectedProposal.proposal_date,
+            end_date: new Date().toISOString(),
+            proposal_id: selectedProposal.id,
+          },
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if (!response.err) {
+          handleCreateProject(response)
+          setSelectedProposal(null)
+          setProjectName('')
+          fetchPendingProposals()
+          updateProjectList() 
+        } else {
+          throw new Error(response.err)
+        }
+      } catch (err) {
+        console.error('Error creating project:', err)
+      }
+    }
+  }
+
   return (
-    <CForm onSubmit={modalType === 'add' ? handleCreateProject : handleUpdateProject}>
-      <CRow>
-        <CCol md={6}>
-          <CFormInput
-            id="projectName"
-            label="Project Name"
-            value={modalType === 'add' ? newProject.name : selectedProject?.name}
-            onChange={(e) => modalType === 'add' ? 
-              setNewProject({...newProject, name: e.target.value}) : 
-              setSelectedProject({...selectedProject, name: e.target.value})
-            }
-            required
-          />
-        </CCol>
-        <CCol md={6}>
-          <CFormSelect
-            id="clientId"
-            label="Client"
-            value={modalType === 'add' ? newProject.client_id : selectedProject?.client_id}
-            onChange={(e) => modalType === 'add' ? 
-              setNewProject({...newProject, client_id: e.target.value}) : 
-              setSelectedProject({...selectedProject, client_id: e.target.value})
-            }
-            required
-          >
-            <option value="">Select a client</option>
-            {clients.map(client => (
-              <option key={client.id} value={client.id}>
-                {`${client.firstname} ${client.lastname}`}
-              </option>
-            ))}
-          </CFormSelect>
-        </CCol>
-      </CRow>
-      <CRow className="mt-3">
-        <CCol md={6}>
-          <CFormInput
-            type="date"
-            id="startDate"
-            label="Start Date"
-            value={modalType === 'add' ? newProject.start_date : selectedProject?.start_date}
-            onChange={(e) => modalType === 'add' ? 
-              setNewProject({...newProject, start_date: e.target.value}) : 
-              setSelectedProject({...selectedProject, start_date: e.target.value})
-            }
-            required
-          />
-        </CCol>
-        <CCol md={6}>
-          <CFormInput
-            type="date"
-            id="endDate"
-            label="End Date"
-            value={modalType === 'add' ? newProject.end_date : selectedProject?.end_date}
-            onChange={(e) => modalType === 'add' ? 
-              setNewProject({...newProject, end_date: e.target.value}) : 
-              setSelectedProject({...selectedProject, end_date: e.target.value})
-            }
-          />
-        </CCol>
-      </CRow>
-      <CRow className="mt-3">
-        <CCol md={12}>
-          <CFormTextarea
-            id="description"
-            label="Description"
-            rows={3}
-            value={modalType === 'add' ? newProject.description : selectedProject?.description}
-            onChange={(e) => modalType === 'add' ? 
-              setNewProject({...newProject, description: e.target.value}) : 
-              setSelectedProject({...selectedProject, description: e.target.value})
-            }
-            required
-          />
-        </CCol>
-      </CRow>
-      <CRow className="mt-3">
-        <CCol md={6}>
-          <CFormSelect
-            id="status"
-            label="Status"
-            value={modalType === 'add' ? newProject.status : selectedProject?.status}
-            onChange={(e) => modalType === 'add' ? 
-              setNewProject({...newProject, status: e.target.value}) : 
-              setSelectedProject({...selectedProject, status: e.target.value})
-            }
-            required
-          >
-            <option value="Planning">Planning</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </CFormSelect>
-        </CCol>
-      </CRow>
+    <CForm onSubmit={(e) => e.preventDefault()}>
       <CRow className="mt-4">
         <CCol>
-          <CButton type="submit" color="primary">
-            {modalType === 'add' ? 'Create Project' : 'Update Project'}
-          </CButton>
+          <h5>Pending Proposals</h5>
+          <CListGroup>
+            {pendingProposals.map((proposal) => (
+              <CListGroupItem
+                key={proposal.id}
+                active={selectedProposal?.id === proposal.id}
+                onClick={() => handleSelectProposal(proposal)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div>
+                  <strong>Client:</strong> {proposal.client_name}
+                </div>
+                <div>
+                  <strong>Description:</strong> {proposal.proposal_description}
+                </div>
+                <div>
+                  <strong>Date:</strong> {new Date(proposal.proposal_date).toLocaleDateString()}
+                </div>
+                <div>
+                  <strong>Budget:</strong> ${proposal.budget_min} -{proposal.budget_max}
+                </div>
+                <div>
+                  <strong>Status:</strong> {proposal.status}
+                </div>
+              </CListGroupItem>
+            ))}
+          </CListGroup>
         </CCol>
       </CRow>
+      {selectedProposal && (
+        <>
+          <CRow className="mt-4">
+            <CCol>
+              <CFormInput
+                type="text"
+                id="projectName"
+                label="Project Name"
+                placeholder="Enter project name"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                required
+              />
+            </CCol>
+          </CRow>
+          <CRow className="mt-4">
+            <CCol>
+              <CButton color="primary" onClick={handleAddProject}>
+                Add Project
+              </CButton>
+            </CCol>
+          </CRow>
+        </>
+      )}
     </CForm>
-  );
-};
+  )
+}
 
-export default ProjectForm;
+export default ProjectForm

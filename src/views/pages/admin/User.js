@@ -40,7 +40,7 @@ import {
   cilPlus,
 } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
-import { baseUrl } from '../../../config' // Importar baseUrl
+import { baseUrl } from '../../../config'
 import { Link } from 'react-router-dom'
 
 const Users = () => {
@@ -57,6 +57,7 @@ const Users = () => {
     role_id: '',
     status: 'Active',
     employee_id: null,
+    password: '', // Añadido para el registro
   })
   const api = helpHttp()
 
@@ -95,6 +96,7 @@ const Users = () => {
       role_id: '',
       status: 'Active',
       employee_id: null,
+      password: '', // Añadido para el registro
     })
     const usersRes = await api.get(`${baseUrl}/users`)
     if (!usersRes.err) {
@@ -106,7 +108,7 @@ const Users = () => {
 
   const addUser = async (user) => {
     try {
-      await api.post(`${baseUrl}/users`, { body: user })
+      await api.post(`${baseUrl}/register`, { body: user, headers: { 'Content-Type': 'application/json' } })
     } catch (error) {
       console.error('Error adding user:', error)
     }
@@ -114,7 +116,7 @@ const Users = () => {
 
   const updateUser = async (id, user) => {
     try {
-      await api.put(`${baseUrl}/users/${id}`, { body: user })
+      await api.put(`${baseUrl}/users/${id}`, { body: user, headers: { 'Content-Type': 'application/json' } })
     } catch (error) {
       console.error('Error updating user:', error)
     }
@@ -150,6 +152,7 @@ const Users = () => {
         role_id: '',
         status: 'Active',
         employee_id: null,
+        password: '', // Añadido para el registro
       })
     }
     setShowModal(true)
@@ -381,6 +384,19 @@ const Users = () => {
                 <option value="Inactive">Inactive</option>
               </CFormSelect>
             </div>
+            {!currentUser && (
+              <div className="mb-3">
+                <CFormLabel htmlFor="password">Password</CFormLabel>
+                <CFormInput
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
           </CModalBody>
           <CModalFooter>
             <CButton color="secondary" onClick={() => setShowModal(false)}>

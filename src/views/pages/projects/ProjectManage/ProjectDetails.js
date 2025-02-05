@@ -17,7 +17,7 @@ import {
 import { helpHttp } from '../../../../helpers/helpHTTP';
 import { baseUrl } from '../../../../config';
 import EmployeeList from '../../../../components/projectsComponents/EmployeeList';
-import Services from '../../../../components/projectsComponents/ServicesList';
+import ServicesList from '../../../../components/projectsComponents/ServicesList';
 import Materials from '../../../../components/projectsComponents/MaterialsList';
 import Photos from '../../../../components/projectsComponents/PhotoList';
 
@@ -127,6 +127,14 @@ const ProjectDetails = ({
     }
   };
 
+  const handleAddService = (service) => {
+    setServices([...services, service]);
+  };
+
+  const handleRemoveService = (serviceId) => {
+    setServices(services.filter((service) => service.id !== serviceId));
+  };
+
   return (
     <div className="project-details">
       <div className="row g-4">
@@ -182,25 +190,20 @@ const ProjectDetails = ({
             setEditingMaterial={setEditingMaterialState}
             setMaterialQuantity={setMaterialQuantityState}
             handleUpdateMaterialQuantity={(id, quantity) => {
-              // Implementa la lógica para actualizar la cantidad de material
             }}
             handleAddMaterial={handleAddMaterial}
             handleRemoveMaterial={(id) => {
-              // Implementa la lógica para eliminar un material
             }}
             totalCost={totalCost}
           />
         </div>
 
         <div className="col-12">
-          <Services
+          <ServicesList
+            projectId={project.id}
             services={services}
-            handleAddService={() => {
-              // Implementa la lógica para añadir un servicio
-            }}
-            handleRemoveService={(id) => {
-              // Implementa la lógica para eliminar un servicio
-            }}
+            handleAddService={handleAddService}
+            handleRemoveService={handleRemoveService}
           />
         </div>
 
@@ -209,7 +212,6 @@ const ProjectDetails = ({
             photos={project.photos}
             handleRemovePhoto={handleRemovePhoto}
             handleFileChange={(e) => {
-              // Implementa la lógica para manejar la subida de archivos
             }}
           />
         </div>

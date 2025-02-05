@@ -40,7 +40,7 @@ import {
   cilPlus,
 } from '@coreui/icons'
 import { helpHttp } from '../../../helpers/helpHTTP'
-import { baseUrl } from '../../../config' // Importar baseUrl
+import { baseUrl } from '../../../config'
 
 const Employees = () => {
   const [employees, setEmployees] = useState([])
@@ -54,24 +54,26 @@ const Employees = () => {
     email: '',
     phone: '',
     position: '',
-    status: 'Active',
-    projects: 0,
+    employee_type_id: '',
+    birthdate: '',
+    gender: '',
+    national_id: '',
     hireDate: '',
   })
   const api = helpHttp()
 
   useEffect(() => {
-    const fetchData = async () => {
-      const employeesRes = await api.get(`${baseUrl}/employees`)
-      if (!employeesRes.err) {
-        setEmployees(employeesRes)
-      } else {
-        setEmployees(null)
-      }
-    }
-
-    fetchData()
+    fetchEmployees()
   }, [])
+
+  const fetchEmployees = async () => {
+    const employeesRes = await api.get(`${baseUrl}/employees`)
+    if (!employeesRes.err) {
+      setEmployees(employeesRes)
+    } else {
+      setEmployees([])
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -93,21 +95,18 @@ const Employees = () => {
       email: '',
       phone: '',
       position: '',
-      status: 'Active',
-      projects: 0,
+      employee_type_id: '',
+      birthdate: '',
+      gender: '',
+      national_id: '',
       hireDate: '',
     })
-    const employeesRes = await api.get(`${baseUrl}/employees`)
-    if (!employeesRes.err) {
-      setEmployees(employeesRes)
-    } else {
-      setEmployees(null)
-    }
+    fetchEmployees()
   }
 
   const addEmployee = async (employee) => {
     try {
-      await api.post(`${baseUrl}/employees`, { body: employee })
+      await api.post(`${baseUrl}/employees`, { body: { ...employee, schedule: null }, headers: { 'Content-Type': 'application/json' } })
     } catch (error) {
       console.error('Error adding employee:', error)
     }
@@ -115,7 +114,7 @@ const Employees = () => {
 
   const updateEmployee = async (id, employee) => {
     try {
-      await api.put(`${baseUrl}/employees/${id}`, { body: employee })
+      await api.put(`${baseUrl}/employees/${id}`, { body: { ...employee, schedule: null }, headers: { 'Content-Type': 'application/json' } })
     } catch (error) {
       console.error('Error updating employee:', error)
     }
@@ -125,12 +124,7 @@ const Employees = () => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
         await api.del(`${baseUrl}/employees/${id}`)
-        const employeesRes = await api.get(`${baseUrl}/employees`)
-        if (!employeesRes.err) {
-          setEmployees(employeesRes)
-        } else {
-          setEmployees(null)
-        }
+        fetchEmployees()
       } catch (error) {
         console.error('Error deleting employee:', error)
       }
@@ -149,8 +143,10 @@ const Employees = () => {
         email: '',
         phone: '',
         position: '',
-        status: 'Active',
-        projects: 0,
+        employee_type_id: '',
+        birthdate: '',
+        gender: '',
+        national_id: '',
         hireDate: '',
       })
     }
@@ -383,25 +379,45 @@ const Employees = () => {
               />
             </div>
             <div className="mb-3">
-              <CFormLabel htmlFor="status">Status</CFormLabel>
+              <CFormLabel htmlFor="employee_type_id">Employee Type ID</CFormLabel>
+              <CFormInput
+                id="employee_type_id"
+                name="employee_type_id"
+                value={formData.employee_type_id}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="birthdate">Birthdate</CFormLabel>
+              <CFormInput
+                type="date"
+                id="birthdate"
+                name="birthdate"
+                value={formData.birthdate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <CFormLabel htmlFor="gender">Gender</CFormLabel>
               <CFormSelect
-                id="status"
-                name="status"
-                value={formData.status}
+                id="gender"
+                name="gender"
+                value={formData.gender}
                 onChange={handleInputChange}
               >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Potential">Potential</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </CFormSelect>
             </div>
             <div className="mb-3">
-              <CFormLabel htmlFor="projects">Projects</CFormLabel>
+              <CFormLabel htmlFor="national_id">National ID</CFormLabel>
               <CFormInput
-                type="number"
-                id="projects"
-                name="projects"
-                value={formData.projects}
+                id="national_id"
+                name="national_id"
+                value={formData.national_id}
                 onChange={handleInputChange}
                 required
               />
