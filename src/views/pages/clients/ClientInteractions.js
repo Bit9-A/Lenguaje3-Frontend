@@ -29,6 +29,7 @@ import {
 import CIcon from '@coreui/icons-react';
 import { cilSearch, cilPlus, cilPhone, cilEnvelopeClosed, cilPeople, cilNotes } from '@coreui/icons';
 import { helpHttp } from '../../../helpers/helpHTTP';
+import { baseUrl } from '../../../config';
 
 const ClientInteractions = () => {
   const [interactions, setInteractions] = useState([]);
@@ -47,7 +48,6 @@ const ClientInteractions = () => {
   });
 
   const api = helpHttp();
-  const baseUrl = 'http://localhost:3000';
 
   useEffect(() => {
     fetchData();
